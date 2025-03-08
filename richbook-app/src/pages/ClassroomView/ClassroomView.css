@@ -1,0 +1,64 @@
+/* src/pages/ClassroomView/ClassroomView.css */
+
+.classroom-view {
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column; /* Stack header, main content, and footer vertically */
+    height: 100vh; /* Make the classroom view take full viewport height */
+    width: 100vw; /* Make the classroom view take full viewport width */
+    overflow: hidden; /* Prevent scrollbars on the main classroom view */
+  }
+  
+  .classroom-header {
+    background-color: #343a40; /* Dark background for header (like a dark grey) */
+    color: white; /* White text color for header */
+    padding: 15px 20px;
+    text-align: left; /* Align header text to the left */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow below header */
+  }
+  
+  .classroom-header h1 {
+    margin: 0; /* Remove default margin for h1 in header */
+    font-size: 1.8em;
+    font-weight: bold;
+  }
+  
+  .classroom-sidebar {
+    width: 280px; /* Adjust sidebar width as needed */
+    background-color: #f8f9fa; /* Light grey background for sidebar */
+    padding: 20px;
+    box-sizing: border-box; /* Include padding in width calculation */
+    overflow-y: auto; /* Enable vertical scrolling in sidebar if content overflows */
+    border-right: 1px solid #dee2e6; /* Light border on the right side of the sidebar */
+  }
+  
+  .classroom-main-content {
+    flex-grow: 1; /* Allow main content to take up remaining space */
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #ffffff; /* White background for main content area */
+    overflow: auto; /* Enable scrolling if PDF content is larger than main content area */
+  }
+  
+  .classroom-footer {
+    background-color: #f8f9fa; /* Light grey background for footer, same as sidebar */
+    padding: 10px 20px;
+    text-align: center; /* Center text in footer */
+    border-top: 1px solid #dee2e6; /* Light border above the footer */
+    font-size: 0.9em;
+    color: #6c757d; /* Muted grey color for footer text */
+  }
+  
+  /* Media query for larger screens (e.g., desktops, laptops) */
+  @media (min-width: 768px) {
+    .classroom-view {
+      flex-direction: row; /* Arrange sidebar and main content side-by-side on larger screens */
+    }
+  
+    .classroom-sidebar {
+      height: 100vh; /* Make sidebar full height on larger screens */
+    }
+  
+    .classroom-main-content {
+      padding: 25px; /* Slightly more padding for main content on larger screens */
+    }
+  }

@@ -1,0 +1,18 @@
+/* src/App.css */
+
+/* Basic global styles or resets can go here */
+
+body {
+  margin: 0; /* Reset default body margin */
+  font-family: sans-serif; /* Set a default font family */
+  -webkit-font-smoothing: antialiased; /* Improve font rendering on macOS/iOS */
+  -moz-osx-font-smoothing: grayscale; /* Improve font rendering on Firefox macOS */
+}
+
+.app-container {
+  height: 100vh; /* Make app container take full viewport height */
+  width: 100vw;  /* Make app container take full viewport width */
+  overflow: hidden; /* Prevent scrollbars on the main app container */
+}
+
+/* You can add more global styles as needed for your application */

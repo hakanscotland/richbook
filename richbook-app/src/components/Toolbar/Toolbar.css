@@ -1,0 +1,35 @@
+/* src/components/Toolbar/Toolbar.css */
+
+.toolbar {
+    background-color: #e0e0e0; /* Light grey background for the toolbar */
+    padding: 10px;
+    border-radius: 5px; /* Optional: Rounded corners for the toolbar */
+    margin-bottom: 10px; /* Add some space below the toolbar */
+  }
+  
+  .toolbar h2 {
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 10px; /* Space below the title */
+    color: #333; /* Dark grey title text */
+  }
+  
+  /* You can add styles for buttons or icons within the toolbar here.
+     For example, if you plan to have buttons: */
+  
+  /* .toolbar button {
+    padding: 8px 12px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 3px;
+    background-color: #ddd;
+    cursor: pointer;
+  }
+  
+  .toolbar button:hover {
+    background-color: #ccc;
+  }
+  
+  .toolbar button:active {
+    background-color: #bbb;
+  } */

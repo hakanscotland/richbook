@@ -1,0 +1,26 @@
+/* src/index.css */
+
+/* CSS Reset - Basic reset to normalize styles across browsers */
+body, html {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+/* You can add more reset rules if needed, for example for other elements like ul, li, p, h1-h6, etc. */
+
+/* Basic global styles for the application can be added below the reset */
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Set a default font family */
+  line-height: 1.5; /* Set a default line height for better readability */
+  color: #333; /* Set a default text color */
+  background-color: #f9f9f9; /* Very light grey background for the whole page */
+}
+
+/* You can add more global styles here if needed.
+   However, it's generally recommended to keep most styling component-specific
+   and use index.css mainly for resets and very basic global settings. */

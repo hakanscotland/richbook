@@ -1,0 +1,81 @@
+/* src/components/WriteTools/WriteTools.css */
+
+.write-tools {
+    background-color: #f8f8f8; /* Slightly lighter grey background */
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .write-tools h3 {
+    font-size: 1.1em;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .tools-container,
+  .colors-container,
+  .size-control,
+  .actions-container {
+    margin-bottom: 15px;
+  }
+  
+  .tool-button,
+  .color-button,
+  .action-button {
+    padding: 8px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 0.9em;
+    width: 30px; /* Fixed width for tool buttons */
+    height: 30px; /* Fixed height for tool buttons */
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .tool-button.active,
+  .color-button.active {
+    background-color: #ddd; /* Highlight active tool/color */
+  }
+  
+  .tool-button:hover,
+  .color-button:hover,
+  .action-button:hover {
+    background-color: #eee;
+  }
+  
+  .tool-button:active,
+  .color-button:active,
+  .action-button:active {
+    background-color: #ddd;
+  }
+  
+  .color-button {
+    border: 1px solid #888; /* Darker border for color buttons */
+    width: 25px;
+    height: 25px;
+    border-radius: 50%; /* Make color buttons circular */
+  }
+  
+  .size-control label {
+    margin-right: 10px;
+    font-size: 0.9em;
+  }
+  
+  .size-control input[type="range"] {
+    width: 100px; /* Adjust range slider width */
+  }
+  
+  .size-control span {
+    margin-left: 5px;
+    font-size: 0.9em;
+  }
+  
+  .actions-container button {
+    padding: 8px 12px; /* Slightly larger padding for action buttons */
+  }

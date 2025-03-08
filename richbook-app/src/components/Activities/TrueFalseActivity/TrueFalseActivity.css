@@ -1,0 +1,14 @@
+/* src/components/Activities/TrueFalseActivity/TrueFalseActivity.css */
+
+.true-false-activity {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+  }
+  
+  .true-false-activity h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+  }

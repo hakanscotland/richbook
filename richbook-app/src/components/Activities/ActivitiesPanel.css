@@ -1,0 +1,49 @@
+/* src/components/Activities/ActivitiesPanel.css */
+
+.activities-panel {
+    background-color: #f5f5f5; /* Light grey background for activities panel */
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .activities-panel h3 {
+    font-size: 1.1em;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .activity-list {
+    list-style: none; /* Remove default list bullets */
+    padding: 0;
+    margin: 0;
+  }
+  
+  .activity-item {
+    margin-bottom: 8px; /* Space between activity items */
+  }
+  
+  .activity-button {
+    display: block; /* Make button take full width of list item */
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left; /* Align text to the left inside the button */
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 0.95em;
+    color: #555;
+    transition: background-color 0.2s ease; /* Smooth background color transition */
+  }
+  
+  .activity-button:hover {
+    background-color: #eee; /* Slightly lighter grey on hover */
+    border-color: #bbb;
+  }
+  
+  .activity-button:active {
+    background-color: #ddd; /* Even lighter grey when active (clicked) */
+    border-color: #aaa;
+  }

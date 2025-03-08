@@ -1,0 +1,14 @@
+/* src/components/Activities/ComboActivity/ComboActivity.css */
+
+.combo-activity {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+  }
+  
+  .combo-activity h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+  }
