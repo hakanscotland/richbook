@@ -1,0 +1,623 @@
+/* src/components/DigitalTeachingTool.css */
+
+/* Temel konteyner stili */
+.digital-teaching-container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .digital-teaching-container--dark {
+    background-color: #111827;
+  }
+  
+  .digital-teaching-container--light {
+    background-color: #f9fafb;
+  }
+  
+  /* Sayfa Gösterimi Stilleri */
+  .page-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .page-scaling {
+    transform-origin: center center;
+    transition: transform 0.2s ease-out;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .page-image {
+    max-height: 90vh;
+    max-width: 90vw;
+    object-fit: contain;
+    pointer-events: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    object-position: center;
+  }
+  
+  .page-image--half {
+    max-height: 45vh;
+    object-position: top;
+    clip-path: inset(0 0 50% 0);
+  }
+  
+  /* Konva Çizim Alanı */
+  .drawing-stage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 500;
+  }
+  
+  .drawing-stage--above-curtain {
+    z-index: 750;
+  }
+  
+  .drawing-stage--hand-tool {
+    cursor: grab;
+    pointer-events: none;
+  }
+  
+  .drawing-stage--drawing-tool {
+    cursor: crosshair;
+    pointer-events: auto;
+  }
+  
+  /* Seçim Dikdörtgeni */
+  .selection-rect {
+    position: absolute;
+    border: 2px dashed red;
+    background-color: rgba(255, 0, 0, 0.1);
+    pointer-events: none;
+    z-index: 700;
+  }
+  
+  /* Araç Çubuğu Stilleri */
+  .toolbar {
+    position: absolute;
+    z-index: 1000;
+    opacity: 0.95;
+    user-select: none;
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    width: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .toolbar--light {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+  
+  .toolbar--dark {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .toolbar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    cursor: move;
+    padding: 0.25rem;
+    width: 100%;
+  }
+  
+  .toolbar-clock {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  
+  .toolbar-button {
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    background-color: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.125rem;
+    border: none;
+    outline: none;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .toolbar-button--active {
+    background-color: #3b82f6;
+    color: white;
+  }
+  
+  .toolbar-button--light {
+    color: #1f2937;
+  }
+  
+  .toolbar-button--dark {
+    color: #f9fafb;
+  }
+  
+  .curtain-icon {
+    width: 20px;
+    height: 20px;
+    background-color: black;
+    opacity: 0.6;
+  }
+  
+  .toolbar-navigation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.5rem 0;
+  }
+  
+  .page-indicator {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    text-align: center;
+    cursor: pointer;
+  }
+  
+  .page-indicator--light {
+    background-color: #e5e7eb;
+  }
+  
+  .page-indicator--dark {
+    background-color: #374151;
+  }
+  
+  .page-nav-buttons {
+    display: flex;
+  }
+  
+  .page-nav-button {
+    padding: 0.25rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 0.375rem;
+    background-color: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+  }
+  
+  .page-nav-button--light {
+    color: #1f2937;
+  }
+  
+  .page-nav-button--dark {
+    color: #f9fafb;
+  }
+  
+  .page-input {
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    color: inherit;
+    text-align: center;
+    font-size: inherit;
+    padding: 0;
+    outline: none;
+  }
+  
+  /* Araç Seçenekleri Paneli */
+  .tool-options-panel {
+    position: absolute;
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    z-index: 1100;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    width: 220px;
+  }
+  
+  .tool-options-panel--dark {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .tool-options-panel--light {
+    background-color: white;
+    color: #1f2937;
+  }
+  
+  .tool-options-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .tool-options-header--light {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .tool-options-header--dark {
+    border-bottom: 1px solid #374151;
+  }
+  
+  .tool-options-title {
+    font-weight: bold;
+  }
+  
+  .color-section {
+    margin-bottom: 1rem;
+  }
+  
+  .color-section-title {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .color-swatch {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+  }
+  
+  .color-swatch--selected {
+    border: 2px solid #3b82f6;
+  }
+  
+  .thickness-section {
+    margin-bottom: 0.5rem;
+  }
+  
+  .thickness-title {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .thickness-options {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  
+  .thickness-swatch {
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  .thickness-swatch--selected {
+    border: 2px solid #3b82f6;
+  }
+  
+  .thickness-slider {
+    width: 100%;
+  }
+  
+  .thickness-value {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Küçük Resim (Thumbnail) Kenar Çubuğu */
+  .thumbnails-sidebar {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    bottom: 1rem;
+    width: 150px;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    overflow-y: auto;
+    z-index: 900;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .thumbnails-sidebar--light {
+    background-color: white;
+    color: #1f2937;
+  }
+  
+  .thumbnails-sidebar--dark {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .thumbnails-header {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .thumbnails-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .thumbnail-item {
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+    border-radius: 0.375rem;
+    overflow: hidden;
+  }
+  
+  .thumbnail-item--current {
+    border: 2px solid #3b82f6;
+  }
+  
+  .thumbnail-item--light {
+    border: 1px solid #d1d5db;
+  }
+  
+  .thumbnail-item--dark {
+    border: 1px solid #4b5563;
+  }
+  
+  .thumbnail-image {
+    width: 100%;
+    display: block;
+  }
+  
+  .thumbnail-label {
+    text-align: center;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+  
+  /* Odak Alanı Popup */
+  .focus-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  
+  .focus-container {
+    position: relative;
+    width: 80%;
+    max-width: 1200px;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+  }
+  
+  .focus-container--light {
+    background-color: white;
+  }
+  
+  .focus-container--dark {
+    background-color: #1f2937;
+  }
+  
+  .focus-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    align-items: center;
+    cursor: move;
+  }
+  
+  .focus-header--light {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .focus-header--dark {
+    border-bottom: 1px solid #374151;
+  }
+  
+  .focus-tools {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .focus-tool-button {
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .focus-tool-button--active {
+    background-color: #3b82f6;
+    color: white;
+  }
+  
+  .focus-tool-button--light {
+    color: black;
+    background-color: transparent;
+  }
+  
+  .focus-tool-button--dark {
+    color: white;
+    background-color: transparent;
+  }
+  
+  .focus-color-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 1rem;
+    cursor: pointer;
+  }
+  
+  .focus-color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #d1d5db;
+  }
+  
+  .focus-close-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+  }
+  
+  .focus-close-button--light {
+    color: black;
+  }
+  
+  .focus-close-button--dark {
+    color: white;
+  }
+  
+  .focus-content {
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .focus-image-container {
+    position: relative;
+    overflow: hidden;
+    max-height: 70vh;
+    max-width: 100%;
+  }
+  
+  .focus-image {
+    position: relative;
+    background-color: #f0f0f0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  .focus-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  
+  /* Durum Bilgisi */
+  .status-info {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 1000;
+  }
+  
+  .status-info--light {
+    background-color: white;
+    color: #1f2937;
+  }
+  
+  .status-info--dark {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+
+  /* Tooltip Styles */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1500;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}
+
+/* Dark mode tooltip */
+.dark-mode .tooltip::after {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: black;
+}
+
+/* Yükleme göstergesi */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
+}
+
+.loading-indicator p {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+/* Dönme animasyonlu spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Karanlık tema için yükleme göstergesi */
+.digital-teaching-container--dark .loading-indicator {
+  background-color: rgba(31, 41, 55, 0.8);
+  color: #f9fafb;
+}
+
+.digital-teaching-container--dark .spinner {
+  border-color: rgba(255, 255, 255, 0.1);
+  border-top-color: #3b82f6;
+}

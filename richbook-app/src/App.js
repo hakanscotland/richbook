@@ -1,6 +1,6 @@
 // App.js - Main application file
 import React from 'react';
-import DigitalTeachingTool from './components/DigitalTeachingTool';
+import DigitalTeachingTool from './components/DigitalTeachingTool/index';
 import './App.css';
 
 function App() {

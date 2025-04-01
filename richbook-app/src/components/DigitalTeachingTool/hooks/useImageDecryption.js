@@ -1,0 +1,52 @@
+// src/components/DigitalTeachingTool/hooks/useImageDecryption.js
+import { useState, useEffect } from 'react';
+import { decryptMultipleImages } from '../../../utils/browserEncrypt';
+
+/**
+ * Şifrelenmiş görüntülerin çözülmesini yönetir
+ */
+const useImageDecryption = () => {
+  const [pages, setPages] = useState([]);
+  const [decryptedImages, setDecryptedImages] = useState({});
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
+  
+  useEffect(() => {
+    // Şifrelenmiş kitap sayfaları
+    const encryptedBookPages = [
+      { id: 1, src: 'encrypted/page1.jpg' },
+      { id: 2, src: 'encrypted/page2.jpg' },
+      { id: 3, src: 'encrypted/page3.jpg' },
+      { id: 4, src: 'encrypted/page4.jpg' },
+      { id: 5, src: 'encrypted/page5.jpg' },
+      { id: 6, src: 'encrypted/page6.jpg' },
+      // Diğer sayfaları burada ekleyin
+    ];
+    
+    setPages(encryptedBookPages);
+    
+    // Görüntülerin şifresini çöz
+    const decryptPages = async () => {
+      setIsLoadingImages(true);
+      
+      try {
+        // Tüm sayfaların şifresini paralel olarak çöz
+        const decryptedUrls = await decryptMultipleImages(encryptedBookPages);
+        setDecryptedImages(decryptedUrls);
+      } catch (error) {
+        console.error('Görüntü şifrelerini çözme hatası:', error);
+      } finally {
+        setIsLoadingImages(false);
+      }
+    };
+    
+    decryptPages();
+  }, []);
+  
+  return {
+    pages,
+    decryptedImages,
+    isLoadingImages
+  };
+};
+
+export default useImageDecryption;
