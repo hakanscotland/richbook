@@ -1,11 +1,12 @@
+// App.js - Main application file
 import React from 'react';
-import ClassroomView from './pages/ClassroomView/ClassroomView';
-import './App.css'; // Import global App styles if needed
+import DigitalTeachingTool from './components/DigitalTeachingTool';
+import './App.css';
 
 function App() {
   return (
-    <div className="app-container"> {/* Optional container class for App */}
-      <ClassroomView />
+    <div className="App">
+      <DigitalTeachingTool />
     </div>
   );
 }
