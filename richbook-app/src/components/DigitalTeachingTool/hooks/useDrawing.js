@@ -20,6 +20,7 @@ const useDrawing = ({
   setFocusArea,
   dragStart,
   setDragStart
+
 }) => {
   const [lines, setLines] = useState([]);
   const [currentLine, setCurrentLine] = useState(null);

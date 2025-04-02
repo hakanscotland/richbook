@@ -138,9 +138,9 @@ useEffect(() => {
     // Hit tespiti ayarlarını optimize et
     if (typeof stage.hitOnDragEnabled === 'function') {
       stage.hitOnDragEnabled(false);
+      }
     }
-  }
-}, []);
+  }, []);
   
   // Saati güncelle
   useEffect(() => {
