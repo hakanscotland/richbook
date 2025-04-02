@@ -2,7 +2,6 @@
 // Ana bileşen - sadece alt bileşenleri bir araya getirir ve durum yönetimini yapar
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Stage, Layer } from 'react-konva';
 import Toolbar from './Toolbar';
 import PageRenderer from './PageRenderer';
 import DrawingCanvas from './DrawingCanvas';
@@ -61,7 +60,6 @@ const DigitalTeachingTool = () => {
   const { 
     lines, 
     currentLine, 
-    isDrawing, 
     handleMouseDown, 
     handleMouseMove, 
     handleMouseUp, 
@@ -96,51 +94,73 @@ const DigitalTeachingTool = () => {
   // Dokunmatik cihaz tespiti
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   
-// index.js dosyasında bulunan useEffect hook'unu şu şekilde düzeltin:
-
-useEffect(() => {
-  // Dokunmatik cihaz algılama
-  const detectTouchDevice = () => {
-    return ('ontouchstart' in window) || 
-      (navigator.maxTouchPoints > 0) || 
-      (navigator.msMaxTouchPoints > 0);
-  };
-  
-  setIsTouchDevice(detectTouchDevice());
-  
-  // iPad ve dokunmatik cihazlarda çizim performansını iyileştir
-  // Bu kısmı düzeltelim:
-  if (stageRef.current) {
-    // Konva Stage'in düzgün yüklendiğinden emin ol
-    const stage = stageRef.current;
-    
-    // NOT: Konva'nın canvas'a erişimi bu şekilde olmalı
-    // Hatalı olan kısım burasıydı:
-    if (stage.canvas) {
-      // canvas nesnesine doğrudan erişim
-      stage.canvas._canvas.style.width = '100%';
-      stage.canvas._canvas.style.height = '100%';
-    }
-    
-    // Dokunmatik olaylar için listening parametresini ayarla
-    stage.listening(true);
-
-    // iPad'de Konva performansını optimize et
-    if (isTouchDevice && stageRef.current) {
-      // Gereksiz yeniden çizim işlemlerini azalt
-      stageRef.current.batchDraw();
+  useEffect(() => {
+    // Dokunmatik cihaz algılama
+    const detectTouchDevice = () => {
+      const hasTouch = 'ontouchstart' in window || 
+                      navigator.maxTouchPoints > 0 || 
+                      navigator.msMaxTouchPoints > 0;
       
-      // Safari'de smoothing performansını artır
-      const context = stageRef.current.getContext()._context;
-      context.imageSmoothingEnabled = false;
-    }
-        
-    // Hit tespiti ayarlarını optimize et
-    if (typeof stage.hitOnDragEnabled === 'function') {
-      stage.hitOnDragEnabled(false);
+      // Dokunmatik cihaz tespit edildiğinde CSS sınıfı ekle
+      if (hasTouch) {
+        document.documentElement.classList.add('touch-device');
+        document.body.classList.add('touch-device');
       }
+      
+      return hasTouch;
+    };
+    
+    setIsTouchDevice(detectTouchDevice());
+    
+    // iPad ve dokunmatik cihazlarda çizim performansını iyileştir
+    if (stageRef.current) {
+      const stage = stageRef.current;
+      
+      // Konva Stage'i dokunmatik cihazlar için optimize et
+      if (stage.canvas && stage.canvas._canvas) {
+        const canvas = stage.canvas._canvas;
+        
+        // Canvas hızlandırma ayarları
+        canvas.style.willChange = 'transform';
+        
+        // Safari'de smoothing performansını artır
+        const context = canvas.getContext('2d');
+        if (context) {
+          context.imageSmoothingEnabled = false;
+        }
+        
+        // Dokunmatik cihazlar için ek optimizasyonlar
+        if (isTouchDevice) {
+          // Dokunmatik vurgulama efektini kaldır
+          canvas.style.webkitTapHighlightColor = 'rgba(0,0,0,0)';
+          
+          // Dokunmatik işaretçiyi geliştir
+          canvas.style.touchAction = 'none';
+          
+          // Piksel oranını ayarla
+          const pixelRatio = window.devicePixelRatio || 1;
+          stage.pixelRatio(pixelRatio);
+          
+          // Hit tespitini optimize et (dokunmatik cihazlar için önemli)
+          stage.hitStrokeWidth(10); // Dokunmatik için daha geniş vuruş alanı
+        }
+      }
+      
+      // Konva'nın hit testi optimizasyonları
+        if (typeof stage.hitGraphEnabled === 'function') {
+          stage.hitGraphEnabled(false);
+        } else {
+          // Konva'nın yeni versiyonlarında bu özellik farklı olabilir
+          // Kullanılabilir alternatifler:
+          stage.listening(true); // Olayları dinlemeyi etkinleştir
+        }
+      
+      // Konva performans ayarları
+      stage.listening(true); // Olayları dinlemeyi etkinleştir
+      stage.perfectDrawEnabled(false); // Mükemmel çizim modunu devre dışı bırak
+      stage.transformsEnabled('position'); // Sadece pozisyon dönüşümlerini etkinleştir
     }
-  }, []);
+  }, [isTouchDevice]);
   
   // Saati güncelle
   useEffect(() => {
@@ -286,12 +306,13 @@ useEffect(() => {
       // Get the data URL
       const dataURL = croppedCanvas.toDataURL('image/png');
       
-      // Update focus area and enable focus mode
+      // Update focus area with better initial zoom
       setFocusArea({
         ...tempArea,
         dataURL: dataURL,
         originalWidth: actualWidth,
-        originalHeight: actualHeight
+        originalHeight: actualHeight,
+        initialZoom: 1.2 // Başlangıç zoom seviyesini ayarla
       });
       
       setIsFocusMode(true);
@@ -316,7 +337,8 @@ useEffect(() => {
         ...tempArea,
         dataURL: fallbackCanvas.toDataURL(),
         originalWidth: tempArea.width,
-        originalHeight: tempArea.height
+        originalHeight: tempArea.height,
+        initialZoom: 1.2
       });
       
       setIsFocusMode(true);
@@ -449,6 +471,14 @@ useEffect(() => {
     <div 
       ref={containerRef}
       className={`digital-teaching-container ${isDarkMode ? 'digital-teaching-container--dark' : 'digital-teaching-container--light'} ${isTouchDevice ? 'touch-device' : ''}`}
+      style={{
+        position: 'absolute', // 'fixed' yerine 'absolute' kullanın
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        zIndex: 0, // Diğer bileşenlerin üste çıkabilmesi için düşük bir z-index
+      }}
       onMouseMove={(e) => {
         handleMouseMoveToolbar(e);
         handleMouseMove(e);
@@ -456,10 +486,6 @@ useEffect(() => {
       onMouseUp={() => {
         stopDraggingToolbar();
         customHandleMouseUp();
-      }}
-      onTouchMove={(e) => {
-        // Dokunmatik olayları engelle
-        e.preventDefault();
       }}
       onTouchEnd={() => {
         stopDraggingToolbar();
@@ -504,12 +530,12 @@ useEffect(() => {
             top: `${focusArea.y}px`,
             width: `${focusArea.width}px`,
             height: `${focusArea.height}px`,
-            border: '2px dashed #3b82f6', // Use a more visible blue color
-            backgroundColor: 'rgba(59, 130, 246, 0.1)', // Light blue background
+            border: '2px dashed #3b82f6', 
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
             pointerEvents: 'none',
             zIndex: 700,
-            boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.2)', // Add subtle white outline for visibility
-            transition: 'border-color 0.2s ease', // Smooth transition for visual feedback
+            boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.2)', 
+            transition: 'border-color 0.2s ease',
           }}
         />
       )}
@@ -577,8 +603,8 @@ useEffect(() => {
         showCurtain={showCurtain}
         setShowCurtain={setShowCurtain}
         isTouchDevice={isTouchDevice}
-        isToolbarCollapsed={isToolbarCollapsed}  // Yeni prop
-        setToolbarCollapsed={setIsToolbarCollapsed}  // Yeni prop
+        isToolbarCollapsed={isToolbarCollapsed}
+        setToolbarCollapsed={setIsToolbarCollapsed}
       />
       
       {/* Araç seçenekleri panel */}
@@ -618,7 +644,7 @@ useEffect(() => {
         />
       )}
       
-      {/* Odak alanı penceresi */}
+      {/* Odak alanı penceresi - İlk adım olarak geçici devre dışı bırakalım */}
       {isFocusMode && focusArea && (
         <FocusArea 
           focusArea={focusArea}
@@ -636,7 +662,7 @@ useEffect(() => {
           isDarkMode={isDarkMode}
         />
       )}
-      
+            
       {/* Küçük resimler kenar çubuğu */}
       {showThumbnails && (
         <ThumbnailSidebar 

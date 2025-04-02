@@ -36,7 +36,13 @@ const DrawingCanvas = ({
       `}
       style={{ 
         cursor: isSelectingFocusArea ? 'crosshair' : (tool === 'hand' ? 'grab' : 'crosshair'),
-        touchAction: 'none' // Dokunmatik cihazlarda tarayıcı kaydırmasını engelle
+        touchAction: 'none', // Dokunmatik kaydırmayı engelle
+        msTouchAction: 'none', // IE/Edge için
+        WebkitTapHighlightColor: 'rgba(0,0,0,0)', // Dokunmatik vurgulamayı kaldır
+        position: 'absolute', // Kesin pozisyon
+        top: 0,
+        left: 0,
+        zIndex: showCurtain ? 750 : 500,
       }}
     >
       <Layer>

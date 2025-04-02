@@ -27,19 +27,19 @@ const useDrawing = ({
   const [isDrawing, setIsDrawing] = useState(false);
   
   // Sayfa değişikliklerini izle
-  useEffect(() => {
-    // Mevcut çizimleri kaydet
-    if (lines.length > 0) {
-      setPageDrawings(prev => ({
-        ...prev,
-        [currentPage]: lines
-      }));
-    }
-    
+    useEffect(() => {
+      // Mevcut çizimleri kaydet
+      if (lines.length > 0) {
+        setPageDrawings(prev => ({
+          ...prev,
+          [currentPage]: lines
+        }));
+      }
+      
     // Yeni sayfadaki çizimleri yükle
     const savedDrawings = pageDrawings[currentPage] || [];
     setLines(savedDrawings);
-  }, [currentPage, pageDrawings, setPageDrawings]);
+    }, [currentPage, pageDrawings, setPageDrawings, lines]);
   
   // Mouse down işleyicisi
   const handleMouseDown = (e) => {
@@ -165,50 +165,59 @@ const useDrawing = ({
   };
 
   // Dokunmatik olay işleyicileri - iPad desteği için
-  // Touch Start işleyicisi
-  const handleTouchStart = (e) => {
-    e.evt.preventDefault(); // Sayfanın kaydırılmasını engelle
-    
-    // Apple Pencil basınç algılama
-  const touch = e.evt.touches[0];
-  if (touch && touch.force && touch.force > 0) {
-    // Basınç değerini 0-1 aralığında normalize et
-    const pressureValue = Math.min(touch.force / 2, 1);
-    // Basınca göre kalem kalınlığını ayarla
-    newLine.strokeWidth = Math.max(1, strokeWidth * pressureValue * 2);
-  }
-    if (!touch) return;
-    
-    const stage = stageRef.current;
-    if (!stage) return;
-    
-    const pos = stage.getPointerPosition();
-    if (!pos) return;
-    
-    // Focus alanı seçimi için
-    if (isSelectingFocusArea) {
-      setDragStart({
-        x: pos.x,
-        y: pos.y
-      });
-      setFocusArea(null);
-      return;
-    }
+    // Touch Start işleyicisi
+    const handleTouchStart = (e) => {
+      // Safari'de kaydırma davranışını engelle
+      if (e.evt) {
+        e.evt.preventDefault(); 
+      }
+      
+      if (isSelectingFocusArea) {
+        if (!stageRef.current) return;
+        
+        const stage = stageRef.current;
+        const touch = e.evt.touches[0];
+        if (!touch) return;
+        
+        // Dokunmatik koordinatların doğru dönüşümü için
+        const boundingRect = stage.container().getBoundingClientRect();
+        const offsetX = touch.clientX - boundingRect.left;
+        const offsetY = touch.clientY - boundingRect.top;
+
+          // Zoom'a göre konumu ayarla
+        const x = offsetX / zoom;
+        const y = offsetY / zoom;
+        
+        // Araç özelliklerine göre yeni çizgi oluştur
+        let newLine = {
+          tool,
+          points: [x, y],
+          strokeWidth,
+        };
+
+        setDragStart({
+          x: offsetX,
+          y: offsetY
+        });
+        
+        setFocusArea(null);
+        return;
+      }
+      
+      
     
     // Eğer el aracı seçiliyse çizim yapmaya gerek yok
-    if (tool === 'hand') return;
-
-    // Apple Pencil'ın açı bilgisini almak için
-    if (touch && touch.radiusX && touch.radiusY) {
-      const angle = Math.atan2(touch.radiusY, touch.radiusX);
-      // Açıya göre kalem ucunu ayarla
-    }
+    if (tool === 'hand' || !stageRef.current) return;
     
     setIsDrawing(true);
+    const stage = stageRef.current;
+    const pointerPosition = stage.getPointerPosition();
+    if (!pointerPosition) return;
+    
     
     // Zoom'a göre konumu ayarla
-    const x = pos.x / zoom;
-    const y = pos.y / zoom;
+    const x = pointerPosition.x / zoom;
+    const y = pointerPosition.y / zoom;
     
     // Araç özelliklerine göre yeni çizgi oluştur
     let newLine = {
@@ -217,62 +226,89 @@ const useDrawing = ({
       strokeWidth,
     };
     
-    // Araç türüne göre özellikleri ayarla
-    if (tool === 'pen') {
-      newLine.color = color;
-      newLine.opacity = opacity;
-    } else if (tool === 'highlighter') {
-      newLine.color = color;
-      newLine.opacity = 0.4; // Yarı saydam
-      newLine.strokeWidth = strokeWidth * 2; // Daha kalın
-    } else if (tool === 'eraser') {
-      newLine.color = '#ffffff'; // Silgi için renk önemli değil
-      newLine.opacity = 1;
-      newLine.strokeWidth = strokeWidth * 3; // Silgi daha kalın
-    }
-    
-    setCurrentLine(newLine);
-  };
+   // Apple Pencil basınç desteği
+  if (touch.force !== undefined && touch.force > 0) {
+    const pressureValue = Math.min(touch.force / 2, 1);
+    newLine.strokeWidth = Math.max(1, strokeWidth * pressureValue * 2);
+  }
+  
+      // Araç türüne göre özellikleri ayarla
+      if (tool === 'pen') {
+        newLine.color = color;
+        newLine.opacity = opacity;
+      } else if (tool === 'highlighter') {
+        newLine.color = color;
+        newLine.opacity = 0.4; // Yarı saydam
+        newLine.strokeWidth = strokeWidth * 2; // Daha kalın
+      } else if (tool === 'eraser') {
+        newLine.color = '#ffffff'; // Silgi için renk önemli değil
+        newLine.opacity = 1;
+        newLine.strokeWidth = strokeWidth * 3; // Silgi daha kalın
+      }
+      
+      setCurrentLine(newLine);
+    };
 
-  // Touch Move işleyicisi
-  const handleTouchMove = (e) => {
-    e.evt.preventDefault(); // Sayfanın kaydırılmasını engelle
-    
-    const stage = stageRef.current;
-    if (!stage) return;
-    
-    const pos = stage.getPointerPosition();
-    if (!pos) return;
-    
-    // Focus alanı seçimi için
-    if (isSelectingFocusArea && dragStart) {
-      const width = Math.abs(pos.x - dragStart.x);
-      const height = Math.abs(pos.y - dragStart.y);
+      // Touch Move işleyicisi
+    const handleTouchMove = (e) => {
+      // Safari'de kaydırma davranışını engelle
+      if (e.evt) {
+        e.evt.preventDefault();
+      }
       
-      const minDimension = 20;
-      const finalWidth = Math.max(width, minDimension);
-      const finalHeight = Math.max(height, minDimension);
+      const stage = stageRef.current;
+      if (!stage) return;
       
-      setFocusArea({
-        x: Math.min(dragStart.x, pos.x),
-        y: Math.min(dragStart.y, pos.y),
-        width: finalWidth,
-        height: finalHeight
-      });
-      return;
-    }
-    
-    if (!isDrawing || !currentLine) return;
-    
-    // Zoom'a göre konumu ayarla
-    const x = pos.x / zoom;
-    const y = pos.y / zoom;
-    
-    setCurrentLine({
-      ...currentLine,
-      points: [...currentLine.points, x, y]
-    });
-  };
+      // Dokunmatik koordinatları manuel hesaplama
+      const touch = e.evt.touches[0];
+      if (!touch) return;
+      
+      // Dokunmatik koordinatların doğru dönüşümü için
+      const boundingRect = stage.container().getBoundingClientRect();
+      const offsetX = touch.clientX - boundingRect.left;
+      const offsetY = touch.clientY - boundingRect.top;
+      
+      // Focus alanı seçimi için
+      if (isSelectingFocusArea && dragStart) {
+        const width = Math.abs(offsetX - dragStart.x);
+        const height = Math.abs(offsetY - dragStart.y);
+        
+        const minDimension = 20;
+        const finalWidth = Math.max(width, minDimension);
+        const finalHeight = Math.max(height, minDimension);
+        
+        setFocusArea({
+          x: Math.min(dragStart.x, offsetX),
+          y: Math.min(dragStart.y, offsetY),
+          width: finalWidth,
+          height: finalHeight
+        });
+        return;
+      }
+      
+      if (!isDrawing || !currentLine) return;
+      
+      // Zoom'a göre konumu ayarla
+      const x = offsetX / zoom;
+      const y = offsetY / zoom;
+      
+      // Apple Pencil basınç güncellemesi
+      let updatedLine = {
+        ...currentLine,
+        points: [...currentLine.points, x, y]
+      };
+      
+      if (touch.force !== undefined && touch.force > 0) {
+        // Basınç değişimine göre kalem kalınlığını güncelle
+        const pressureValue = Math.min(touch.force / 2, 1);
+        const baseStrokeWidth = tool === 'highlighter' ? strokeWidth * 2 : 
+                              tool === 'eraser' ? strokeWidth * 3 : 
+                              strokeWidth;
+        updatedLine.strokeWidth = Math.max(1, baseStrokeWidth * pressureValue);
+      }
+      
+      setCurrentLine(updatedLine);
+    };
 
   // Touch End işleyicisi
   const handleTouchEnd = (e) => {
@@ -342,7 +378,7 @@ const useDrawing = ({
     handleMouseMove,
     handleMouseUp,
     handleTouchStart,
-    handleTouchMove,
+    handleTouchMove: throttledTouchMove, // Performans için throttle kullan
     handleTouchEnd,
     clearDrawings
   };

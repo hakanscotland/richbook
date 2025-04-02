@@ -1,7 +1,8 @@
 // src/components/DigitalTeachingTool/FocusArea.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
 import { Pencil, Highlighter, Eraser, Trash2, X, ZoomIn, ZoomOut, Save } from 'lucide-react';
+import './FocusArea.css';
 
 const FocusArea = ({
   focusArea,
@@ -28,7 +29,7 @@ const FocusArea = ({
   const [isDraggingFocusPopup, setIsDraggingFocusPopup] = useState(false);
   const [focusPopupDragOffset, setFocusPopupDragOffset] = useState({ x: 0, y: 0 });
   const [isLoading, setIsLoading] = useState(true);
-  const [focusZoom, setFocusZoom] = useState(1);
+  const [focusZoom, setFocusZoom] = useState(1.2); // Başlangıçta biraz daha yakınlaştırılmış
   
   // Resize functionality
   const [isResizing, setIsResizing] = useState(false);
@@ -53,17 +54,56 @@ const FocusArea = ({
     }
   }, [focusArea]);
   
-  // Image loading effect
+  // Initialize focus area on load with proper zoom and position
   useEffect(() => {
     if (focusArea && focusArea.dataURL) {
-      setIsLoading(true);
+      // İlk yükleme sırasında initialZoom değerini kullan (varsa)
+      if (focusArea.initialZoom) {
+        setFocusZoom(focusArea.initialZoom);
+      }
+      
+      // Yakalanan görüntü yüklendikten sonra ortalama ve hizalama için
       const img = new Image();
-      img.onload = () => setIsLoading(false);
+      img.onload = () => {
+        setIsLoading(false);
+        
+        // Odak alanı için en iyi büyüklüğü belirle
+        const containerWidth = Math.min(window.innerWidth * 0.8, 1200);
+        const containerHeight = Math.min(window.innerHeight * 0.8, 800);
+        
+        // Görüntünün en-boy oranını koru, ancak container sınırlarına uygun olarak ayarla
+        const aspectRatio = img.width / img.height;
+        let finalWidth, finalHeight;
+        
+        if (containerWidth / containerHeight > aspectRatio) {
+          // Container daha geniş, yüksekliğe göre sınırla
+          finalHeight = Math.min(img.height, containerHeight * 0.8);
+          finalWidth = finalHeight * aspectRatio;
+        } else {
+          // Container daha yüksek, genişliğe göre sınırla
+          finalWidth = Math.min(img.width, containerWidth * 0.8);
+          finalHeight = finalWidth / aspectRatio;
+        }
+        
+        // Container boyutunu güncelle
+        setContainerSize({
+          width: finalWidth + 80, // Kenar boşlukları için ekstra alan
+          height: finalHeight + 130 // Üst bar ve kenar boşlukları için ekstra alan
+        });
+        
+        // Popup penceresini ekranın ortasına yerleştir
+        setFocusPopupPosition({
+          x: (window.innerWidth - (finalWidth + 80)) / 2,
+          y: (window.innerHeight - (finalHeight + 130)) / 2
+        });
+      };
+      
+      img.src = focusArea.dataURL;
+      
       img.onerror = () => {
         console.error("Failed to load focus area image");
         setIsLoading(false);
       };
-      img.src = focusArea.dataURL;
       
       return () => {
         img.onload = null;
@@ -107,9 +147,8 @@ const FocusArea = ({
     // Araç değişince paneli kapat
     setShowFocusToolOptions(false);
   };
-  
   // Focus popup sürükleme işleyicileri
-  const startDraggingFocusPopup = (e) => {
+  const startDraggingFocusPopup = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -121,23 +160,23 @@ const FocusArea = ({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     });
-  };
+  }, []);
   
-  const handleMouseMoveFocusPopup = (e) => {
+  const handleMouseMoveFocusPopup = useCallback((e) => {
     if (!isDraggingFocusPopup) return;
     
     setFocusPopupPosition({
       x: e.clientX - focusPopupDragOffset.x,
       y: e.clientY - focusPopupDragOffset.y
     });
-  };
+  }, [isDraggingFocusPopup, focusPopupDragOffset]);
   
-  const stopDraggingFocusPopup = () => {
+  const stopDraggingFocusPopup = useCallback(() => {
     setIsDraggingFocusPopup(false);
-  };
+  }, []);
   
   // Resize handlers
-  const startResizing = (e, direction) => {
+  const startResizing = useCallback((e, direction) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -147,9 +186,9 @@ const FocusArea = ({
       x: e.clientX,
       y: e.clientY
     });
-  };
+  }, []);
 
-  const handleResizeMove = (e) => {
+  const handleResizeMove = useCallback((e) => {
     if (!isResizing || !focusPopupRef.current) return;
     
     const deltaX = e.clientX - resizeStart.x;
@@ -174,12 +213,12 @@ const FocusArea = ({
       x: e.clientX,
       y: e.clientY
     });
-  };
+  }, [isResizing, resizeDirection, resizeStart, containerSize]);
 
-  const stopResizing = () => {
+  const stopResizing = useCallback(() => {
     setIsResizing(false);
     setResizeDirection(null);
-  };
+  }, []);
   
   // Renk butonu işleyicisi - Fixed version
   const handleFocusColorButtonClick = (e) => {
@@ -253,13 +292,13 @@ const FocusArea = ({
   };
   
   // Focus zoom handlers
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     setFocusZoom(prev => Math.min(prev + 0.1, 3));
-  };
+  }, []);
   
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     setFocusZoom(prev => Math.max(prev - 0.1, 0.5));
-  };
+  }, []);
   
   // Save focus area as image
   const handleSaveFocusArea = () => {
@@ -312,7 +351,7 @@ const FocusArea = ({
           position: 'absolute',
           top: `${focusToolOptionsPosition.y}px`,
           left: `${focusToolOptionsPosition.x}px`,
-          zIndex: 1400, // Increased z-index
+          zIndex: 1400,
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         }}>
         <div className={`tool-options-header tool-options-header--${isDarkMode ? 'dark' : 'light'}`}>
@@ -332,7 +371,7 @@ const FocusArea = ({
           />
         </div>
         
-        {/* Renk seçimi - Sadece kalem ve fosforlu kalem için göster - Updated version */}
+        {/* Renk seçimi - Sadece kalem ve fosforlu kalem için göster */}
         {tool !== 'eraser' && (
           <div className="color-section">
             <div className="color-section-title">Color</div>
@@ -353,8 +392,6 @@ const FocusArea = ({
                     e.preventDefault();
                     e.stopPropagation();
                     setColor(c);
-                    // Optional: close panel after color selection
-                    // setShowFocusToolOptions(false);
                   }}
                 />
               ))}
@@ -425,7 +462,7 @@ const FocusArea = ({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingFocusPopup, isResizing]);
+  }, [isDraggingFocusPopup, isResizing, handleMouseMoveFocusPopup, handleResizeMove, stopDraggingFocusPopup, stopResizing]);
   
   // Keyboard shortcuts
   useEffect(() => {
@@ -483,13 +520,11 @@ const FocusArea = ({
         ref={focusPopupRef}
         className={`focus-container focus-container--${isDarkMode ? 'dark' : 'light'}`}
         style={{
-          position: 'absolute',
           left: focusPopupPosition.x || '50%',
           top: focusPopupPosition.y || '50%',
           transform: !focusPopupPosition.x ? 'translate(-50%, -50%)' : 'none',
           width: `${containerSize.width}px`,
           height: `${containerSize.height}px`,
-          overflow: 'hidden'
         }}
       >
         <div 
@@ -550,32 +585,15 @@ const FocusArea = ({
             >
               <Save size={20} />
             </button>
-            
             {/* Enhanced color selector */}
             <div
-              className="focus-color-selector"
+              className={`focus-color-selector focus-color-selector--${isDarkMode ? 'dark' : 'light'}`}
               onClick={handleFocusColorButtonClick}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                marginLeft: '1rem',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                border: '1px solid transparent',
-                transition: 'all 0.2s ease',
-              }}
             >
               <div
                 className="focus-color-swatch"
                 style={{
                   backgroundColor: color,
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  border: '1px solid #d1d5db',
                 }}
               />
               <span style={{ fontSize: '0.9rem' }}>{strokeWidth}px</span>
@@ -598,34 +616,19 @@ const FocusArea = ({
         <div className="focus-content">
           {/* Loading indicator */}
           {isLoading && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '12px',
-                zIndex: 1350,
-                color: isDarkMode ? '#f9fafb' : '#1f2937'
-              }}
-            >
-              <div className="spinner" style={{ width: '32px', height: '32px' }} />
+            <div className={`loading-indicator loading-indicator--${isDarkMode ? 'dark' : 'light'}`}>
+              <div className="spinner" />
               <p>Loading focus area...</p>
             </div>
           )}
           
-          <div className="focus-image-container">
+          <div className={`focus-image-container focus-image-container--${isDarkMode ? 'dark' : 'light'}`}>
             <div
               className="focus-image"
               style={{
                 width: focusArea.originalWidth || focusArea.width,
                 height: focusArea.originalHeight || focusArea.height,
                 backgroundImage: `url(${focusArea.dataURL})`,
-                transform: `scale(${focusZoom})`,
-                transformOrigin: 'top left',
               }}
             >
               <Stage
@@ -638,9 +641,9 @@ const FocusArea = ({
                 className="focus-canvas"
                 style={{ 
                   cursor: tool === 'hand' ? 'grab' : 'crosshair',
-                  transform: `scale(${focusZoom})`,
-                  transformOrigin: 'top left',
                 }}
+                scaleX={focusZoom}
+                scaleY={focusZoom}
               >
                 <Layer>
                   {/* Mevcut çizimler */}
@@ -686,88 +689,32 @@ const FocusArea = ({
         
         {/* Resize handles */}
         <div 
-          style={{
-            position: 'absolute',
-            bottom: '0',
-            right: '0',
-            width: '15px',
-            height: '15px',
-            cursor: 'se-resize',
-            zIndex: 1310
-          }}
+          className="resize-handle resize-handle--se"
           onMouseDown={(e) => startResizing(e, 'se')}
         />
 
         <div 
-          style={{
-            position: 'absolute',
-            bottom: '0',
-            left: '0',
-            width: '15px',
-            height: '15px',
-            cursor: 'sw-resize',
-            zIndex: 1310
-          }}
+          className="resize-handle resize-handle--sw"
           onMouseDown={(e) => startResizing(e, 'sw')}
         />
 
         <div 
-          style={{
-            position: 'absolute',
-            top: '0',
-            right: '0',
-            width: '15px',
-            height: '15px',
-            cursor: 'ne-resize',
-            zIndex: 1310
-          }}
+          className="resize-handle resize-handle--ne"
           onMouseDown={(e) => startResizing(e, 'ne')}
         />
 
         <div 
-          style={{
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '15px',
-            height: '15px',
-            cursor: 'nw-resize',
-            zIndex: 1310
-          }}
+          className="resize-handle resize-handle--nw"
           onMouseDown={(e) => startResizing(e, 'nw')}
         />
         
         {/* Keyboard shortcuts info */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            fontSize: '11px',
-            color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
-            pointerEvents: 'none',
-            zIndex: 1310
-          }}
-        >
+        <div className={`focus-shortcuts-info focus-shortcuts-info--${isDarkMode ? 'dark' : 'light'}`}>
           ESC: Close • Space: Hand tool • +/-: Zoom
         </div>
         
         {/* Zoom indicator */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            right: '20px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)',
-            backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
-            padding: '3px 8px',
-            borderRadius: '4px',
-            pointerEvents: 'none',
-            zIndex: 1310
-          }}
-        >
+        <div className="focus-zoom-indicator">
           {Math.round(focusZoom * 100)}%
         </div>
       </div>

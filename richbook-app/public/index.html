@@ -33,6 +33,7 @@
       
     <title>RichBook Web App</title>
     <script>
+
       // Dokunmatik cihaz tespiti ve HTML sınıfı ekleme
       document.addEventListener('DOMContentLoaded', function() {
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
@@ -40,17 +41,23 @@
           document.body.classList.add('has-touch-ui');
         }
       });
-      
-      // iOS'ta dokunmatik olayların çalışması için zorla düzeltme 
+
+      // Sadece canvas dışındaki dokunmatik olayları engelle
       document.addEventListener('touchmove', function(e) {
+
+        // Canvas veya drawing-stage sınıfına sahip elementler için varsayılan davranışa izin ver
+        if(e.target.tagName === 'CANVAS' || (e.target.className && e.target.className.includes('drawing-stage'))) {
+          return; // Canvas üzerinde kaydırmaya izin ver
+        }
+        e.preventDefault(); // Diğer yerlerde kaydırmayı engelle
+      }, { passive: false });
+  
+    // iPad'de çift dokunma ile yakınlaştırmayı engelleme
+      document.addEventListener('gesturestart', function(e) {
+        // Canvas üzerinde olmayan hareketleri engelle
         if(e.target.tagName !== 'CANVAS') {
           e.preventDefault();
         }
-      }, { passive: false });
-      
-      // iPad'de çift dokunma ile yakınlaştırmayı engelleme
-      document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
       });
     </script>
   </head>

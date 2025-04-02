@@ -11,7 +11,7 @@ const PageRenderer = ({
   isHalfPageView 
 }) => {
   return (
-    <div className="page-container">
+    <div className="page-container" style={{position: 'absolute', inset: 0, zIndex: 100}}>
       <div className="page-scaling" style={{ transform: `scale(${zoom})` }}>
         {/* Current page display */}
         {currentPage <= pages.length && (
@@ -23,9 +23,17 @@ const PageRenderer = ({
               </div>
             ) : (
               <img 
-                src={decryptedImages[currentPage] || pages[currentPage - 1]?.src} 
+                src={decryptedImages[currentPage] || (pages[currentPage - 1] && pages[currentPage - 1].src)} 
                 alt={`Page ${currentPage}`}
                 className={`page-image ${isHalfPageView ? 'page-image--half' : ''}`}
+                style={{
+                  maxHeight: '90vh',
+                  maxWidth: '90vw',
+                  objectFit: 'contain',
+                  pointerEvents: 'none',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  objectPosition: 'center'
+                }}
               />
             )}
           </div>
@@ -41,9 +49,17 @@ const PageRenderer = ({
               </div>
             ) : (
               <img 
-                src={decryptedImages[currentPage + 1] || pages[currentPage]?.src} 
+                src={decryptedImages[currentPage + 1] || (pages[currentPage] && pages[currentPage].src)} 
                 alt={`Page ${currentPage + 1}`}
                 className={`page-image ${isHalfPageView ? 'page-image--half' : ''}`}
+                style={{
+                  maxHeight: '90vh',
+                  maxWidth: '90vw',
+                  objectFit: 'contain',
+                  pointerEvents: 'none',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  objectPosition: 'center'
+                }}
               />
             )}
           </div>

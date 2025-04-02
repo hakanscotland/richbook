@@ -386,37 +386,40 @@
     padding-bottom: 0.25rem;
   }
   
-  /* Odak Alanı Popup */
-  .focus-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.75);
-    z-index: 1200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-  }
+/* Focus modal düzeltmesi */
+.focus-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75); 
+  z-index: 1200; /* Daha yüksek z-index */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
   
   .focus-container {
     position: relative;
     width: 80%;
     max-width: 1200px;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); /* Daha belirgin gölge */
     overflow: hidden;
   }
   
   .focus-container--light {
     background-color: white;
+    border: 1px solid #e5e7eb;
   }
   
   .focus-container--dark {
     background-color: #1f2937;
+    border: 1px solid #374151;
   }
+  
   
   .focus-header {
     display: flex;
@@ -496,10 +499,11 @@
   }
   
   .focus-content {
-    padding: 1rem;
+    padding: 1.5rem;
     display: flex;
     justify-content: center;
-    position: relative;
+    align-items: center; /* Dikeyde de ortala */
+    min-height: 300px; /* Minimum yükseklik ayarla */
   }
   
   .focus-image-container {
@@ -507,15 +511,40 @@
     overflow: hidden;
     max-height: 70vh;
     max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f7f7f7; /* Light mode için hafif gri arka plan */
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+  }
+
+  .dark-mode .focus-image-container {
+    background-color: #111827; /* Dark mode için koyu arka plan */
+    border: 1px solid #374151;
   }
   
   .focus-image {
     position: relative;
-    background-color: #f0f0f0;
-    background-size: contain;
-    background-position: center;
     background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    transition: transform 0.3s ease; /* Yumuşak zoom geçişi */
   }
+  
+  /* Zoom indicators için stil */
+.focus-zoom-indicator {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 1400;
+}
   
   .focus-canvas {
     position: absolute;
@@ -694,26 +723,27 @@
 }
 
 /* Dokunmatik cihazlarda performansı artırmak için */
-@supports (-webkit-touch-callout: none) {
-  /* Safari için dokunmatik düzeltmeleri */
-  canvas {
-    transform: translateZ(0); /* Safari'de grafik hızlandırma */
-  }
-  
+    @supports (-webkit-touch-callout: none) {
+      /* Safari için dokunmatik düzeltmeleri */
+      canvas {
+        transform: translateZ(0); /* Safari'de grafik hızlandırma */
+      }
+    }
   .drawing-stage {
     -webkit-tap-highlight-color: transparent; /* Dokunmatik vurgulamayı kaldır */
   }
   
   /* iPad'de Safari için kaydırma davranışını engelle */
-  .digital-teaching-container {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    -webkit-overflow-scrolling: none;
-    overscroll-behavior-y: none;
-  }
-}
+    .digital-teaching-container {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: absolute; /* 'fixed' yerine 'absolute' kullanın */
+      inset: 0;
+      background-color: white; /* Beyaz arka plan ekleyin */
+      z-index: 0; /* Diğer bileşenlerin üste çıkabilmesi için düşük bir z-index */
+    }
+  
 
 /* Dokunmatik basma animasyonu - geri bildirim için */
 @keyframes touchPulse {
@@ -746,11 +776,6 @@
   border-bottom: none;
 }
 
-/* Geçiş animasyonları */
-.toolbar {
-  transition: height 0.3s ease, opacity 0.2s ease;
-}
-
 /* Tablet/mobil için daraltılmış toolbar optimizasyonu */
 @media (pointer: coarse) {
   .toolbar--collapsed {
@@ -761,3 +786,4 @@
     padding: 4px;
   }
 }
+

@@ -1,0 +1,261 @@
+/* src/components/DigitalTeachingTool/FocusArea.css */
+
+.focus-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75); 
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  
+  .focus-container {
+    position: absolute;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+  }
+  
+  .focus-container--light {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .focus-container--dark {
+    background-color: #1f2937;
+    border: 1px solid #374151;
+  }
+  
+  .focus-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    align-items: center;
+    cursor: move;
+  }
+  
+  .focus-header--light {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .focus-header--dark {
+    border-bottom: 1px solid #374151;
+  }
+  
+  .focus-tools {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .focus-tool-button {
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .focus-tool-button--active {
+    background-color: #3b82f6;
+    color: white;
+  }
+  
+  .focus-tool-button--light {
+    color: black;
+    background-color: transparent;
+  }
+  
+  .focus-tool-button--dark {
+    color: white;
+    background-color: transparent;
+  }
+  
+  .focus-color-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+  
+  .focus-color-selector--light {
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid transparent;
+  }
+  
+  .focus-color-selector--dark {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
+  }
+  
+  .focus-color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #d1d5db;
+  }
+  
+  .focus-close-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+  }
+  
+  .focus-close-button--light {
+    color: black;
+  }
+  
+  .focus-close-button--dark {
+    color: white;
+  }
+  
+  .focus-content {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .focus-image-container {
+    position: relative;
+    overflow: hidden;
+    max-height: 70vh;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.5rem;
+  }
+  
+  .focus-image-container--light {
+    background-color: #f7f7f7;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .focus-image-container--dark {
+    background-color: #111827;
+    border: 1px solid #374151;
+  }
+  
+  .focus-image {
+    position: relative;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  .focus-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: center center;
+  }
+  
+  .loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    z-index: 1350;
+  }
+  
+  .loading-indicator--light {
+    color: #1f2937;
+  }
+  
+  .loading-indicator--dark {
+    color: #f9fafb;
+  }
+  
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #3b82f6;
+    animation: spin 1s linear infinite;
+  }
+  
+  .focus-shortcuts-info {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 1310;
+  }
+  
+  .focus-shortcuts-info--light {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .focus-shortcuts-info--dark {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .focus-zoom-indicator {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 3px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1310;
+  }
+  
+  .resize-handle {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    z-index: 1310;
+  }
+  
+  .resize-handle--se {
+    bottom: 0;
+    right: 0;
+    cursor: se-resize;
+  }
+  
+  .resize-handle--sw {
+    bottom: 0;
+    left: 0;
+    cursor: sw-resize;
+  }
+  
+  .resize-handle--ne {
+    top: 0;
+    right: 0;
+    cursor: ne-resize;
+  }
+  
+  .resize-handle--nw {
+    top: 0;
+    left: 0;
+    cursor: nw-resize;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
