@@ -26,8 +26,9 @@ const DigitalTeachingTool = () => {
     width: window.innerWidth,
     height: window.innerHeight
   });
-  const [time, setTime] = useState(new Date());
-  
+  const [time, setTime] = useState(new Date())
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+
   // Araç paneli durumu
   const [toolbarPosition, setToolbarPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
@@ -39,6 +40,7 @@ const DigitalTeachingTool = () => {
   
   // Çizim ve sayfa durumu
   const [tool, setTool] = useState('hand');
+  const [previousTool, setPreviousTool] = useState(null);
   const [color, setColor] = useState('#0096FF');
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [opacity, setOpacity] = useState(1);
@@ -63,6 +65,9 @@ const DigitalTeachingTool = () => {
     handleMouseDown, 
     handleMouseMove, 
     handleMouseUp, 
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
     clearDrawings 
   } = useDrawing({
     tool,
@@ -88,6 +93,55 @@ const DigitalTeachingTool = () => {
     decryptedImages
   } = useImageDecryption();
   
+  // Dokunmatik cihaz tespiti
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  
+// index.js dosyasında bulunan useEffect hook'unu şu şekilde düzeltin:
+
+useEffect(() => {
+  // Dokunmatik cihaz algılama
+  const detectTouchDevice = () => {
+    return ('ontouchstart' in window) || 
+      (navigator.maxTouchPoints > 0) || 
+      (navigator.msMaxTouchPoints > 0);
+  };
+  
+  setIsTouchDevice(detectTouchDevice());
+  
+  // iPad ve dokunmatik cihazlarda çizim performansını iyileştir
+  // Bu kısmı düzeltelim:
+  if (stageRef.current) {
+    // Konva Stage'in düzgün yüklendiğinden emin ol
+    const stage = stageRef.current;
+    
+    // NOT: Konva'nın canvas'a erişimi bu şekilde olmalı
+    // Hatalı olan kısım burasıydı:
+    if (stage.canvas) {
+      // canvas nesnesine doğrudan erişim
+      stage.canvas._canvas.style.width = '100%';
+      stage.canvas._canvas.style.height = '100%';
+    }
+    
+    // Dokunmatik olaylar için listening parametresini ayarla
+    stage.listening(true);
+
+    // iPad'de Konva performansını optimize et
+    if (isTouchDevice && stageRef.current) {
+      // Gereksiz yeniden çizim işlemlerini azalt
+      stageRef.current.batchDraw();
+      
+      // Safari'de smoothing performansını artır
+      const context = stageRef.current.getContext()._context;
+      context.imageSmoothingEnabled = false;
+    }
+        
+    // Hit tespiti ayarlarını optimize et
+    if (typeof stage.hitOnDragEnabled === 'function') {
+      stage.hitOnDragEnabled(false);
+    }
+  }
+}, []);
+  
   // Saati güncelle
   useEffect(() => {
     const timer = setInterval(() => {
@@ -109,10 +163,65 @@ const DigitalTeachingTool = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // ESC key to exit focus mode or selection mode
+      if (e.key === 'Escape') {
+        if (isFocusMode) {
+          setIsFocusMode(false);
+          setFocusArea(null);
+        } else if (isSelectingFocusArea) {
+          setIsSelectingFocusArea(false);
+          setFocusArea(null);
+          setDragStart(null);
+        }
+      }
+      
+      // F key to activate focus tool
+      if (e.key === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (!isFocusMode) {
+          setIsSelectingFocusArea(!isSelectingFocusArea);
+          if (isSelectingFocusArea) {
+            setFocusArea(null);
+          }
+          setTool('hand');
+          setShowToolOptions(false);
+        }
+      }
+      
+      // Spacebar to toggle between hand tool and previous tool (while held)
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault(); // Prevent page scrolling
+        if (tool !== 'hand') {
+          setPreviousTool(tool);
+          setTool('hand');
+        }
+      }
+    };
+    
+    const handleKeyUp = (e) => {
+      // Release spacebar to return to previous tool
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (previousTool && tool === 'hand') {
+          setTool(previousTool);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [tool, previousTool, isFocusMode, isSelectingFocusArea]);
+
   // Focus alanı ekran görüntüsü alma fonksiyonu
   const captureFocusArea = async (area) => {
-    console.log("captureFocusArea called with:", area);
-    
+    // Validate the area dimensions
     if (!area || area.width < 20 || area.height < 20) {
       console.log("Area too small or invalid");
       return;
@@ -124,34 +233,36 @@ const DigitalTeachingTool = () => {
       return;
     }
     
-    // Seçim dikdörtgenini geçici olarak gizle
+    // Hide the selection rectangle temporarily
+    const tempArea = {...area};
     setFocusArea(null);
     
-    // Kısa bir gecikme ekle
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Add a short delay to ensure UI updates before capture
+    await new Promise(resolve => setTimeout(resolve, 200));
     
     try {
-      console.log("Starting html2canvas capture");
+      // Capture the entire container
       const canvas = await html2canvas(containerElement, {
         scrollX: 0,
         scrollY: 0,
-        scale: 1,
+        scale: window.devicePixelRatio || 1, // Use device pixel ratio for better quality
+        useCORS: true,
+        allowTaint: true,
         ignoreElements: (element) => {
           return element.classList && 
                  (element.classList.contains('selection-rect') || 
-                  element.classList.contains('toolbar'));
+                  element.classList.contains('toolbar') ||
+                  element.classList.contains('tool-options-panel'));
         }
       });
       
-      console.log("html2canvas capture successful", canvas.width, canvas.height);
+      // Calculate coordinates with zoom consideration
+      const x = Math.floor(tempArea.x);
+      const y = Math.floor(tempArea.y);
+      const width = Math.ceil(tempArea.width);
+      const height = Math.ceil(tempArea.height);
       
-      // Koordinatları hesapla
-      const x = Math.floor(area.x / zoom);
-      const y = Math.floor(area.y / zoom);
-      const width = Math.ceil(area.width / zoom);
-      const height = Math.ceil(area.height / zoom);
-      
-      // Kırpma işlemi
+      // Crop the captured image
       const ctx = canvas.getContext('2d');
       const actualX = Math.max(0, x);
       const actualY = Math.max(0, y);
@@ -162,50 +273,50 @@ const DigitalTeachingTool = () => {
         throw new Error("Invalid cropping dimensions");
       }
       
-      // Canvas'ı kırp
-      const imageData = ctx.getImageData(actualX, actualY, actualWidth, actualHeight);
+      // Create a new canvas for the cropped area
       const croppedCanvas = document.createElement('canvas');
       croppedCanvas.width = actualWidth;
       croppedCanvas.height = actualHeight;
       const croppedCtx = croppedCanvas.getContext('2d');
+      
+      // Copy the image data from the source canvas to the cropped canvas
+      const imageData = ctx.getImageData(actualX, actualY, actualWidth, actualHeight);
       croppedCtx.putImageData(imageData, 0, 0);
       
-      // dataURL'i al
-      const dataURL = croppedCanvas.toDataURL();
+      // Get the data URL
+      const dataURL = croppedCanvas.toDataURL('image/png');
       
-      // Focus alanını güncelle ve modu etkinleştir
+      // Update focus area and enable focus mode
       setFocusArea({
-        ...area,
+        ...tempArea,
         dataURL: dataURL,
-        originalWidth: area.width,
-        originalHeight: area.height
+        originalWidth: actualWidth,
+        originalHeight: actualHeight
       });
       
       setIsFocusMode(true);
       setIsSelectingFocusArea(false);
-      
-      console.log("Focus mode activated");
     } catch (error) {
       console.error("Error capturing focus area:", error);
       
-      // Fallback görüntüsü
+      // Create a fallback image if capture fails
       const fallbackCanvas = document.createElement('canvas');
-      fallbackCanvas.width = area.width;
-      fallbackCanvas.height = area.height;
+      fallbackCanvas.width = tempArea.width;
+      fallbackCanvas.height = tempArea.height;
       const fallbackCtx = fallbackCanvas.getContext('2d');
       fallbackCtx.fillStyle = '#f0f0f0';
-      fallbackCtx.fillRect(0, 0, area.width, area.height);
+      fallbackCtx.fillRect(0, 0, tempArea.width, tempArea.height);
       fallbackCtx.font = '14px Arial';
       fallbackCtx.fillStyle = 'black';
       fallbackCtx.textAlign = 'center';
-      fallbackCtx.fillText('Görüntü alınamadı', area.width/2, area.height/2);
+      fallbackCtx.fillText('Görüntü alınamadı', tempArea.width/2, tempArea.height/2);
       
-      // Fallback görüntüsünü kullan
+      // Use the fallback image
       setFocusArea({
-        ...area,
+        ...tempArea,
         dataURL: fallbackCanvas.toDataURL(),
-        originalWidth: area.width,
-        originalHeight: area.height
+        originalWidth: tempArea.width,
+        originalHeight: tempArea.height
       });
       
       setIsFocusMode(true);
@@ -215,19 +326,57 @@ const DigitalTeachingTool = () => {
   
   // Mouse up handler - focus alanı için
   const customHandleMouseUp = () => {
-    console.log("CustomHandleMouseUp called. isSelectingFocusArea:", isSelectingFocusArea);
-    
     // Focus alanı seçiliyorsa
     if (isSelectingFocusArea && dragStart && focusArea) {
-      console.log("Focus area selected:", focusArea);
+      // Create a copy of the focus area to avoid state issues
       const tempFocusArea = { ...focusArea };
-      captureFocusArea(tempFocusArea);
+      
+      // Only proceed if the area is large enough
+      if (tempFocusArea.width >= 20 && tempFocusArea.height >= 20) {
+        // Wait a moment to ensure state is stable before capturing
+        setTimeout(() => {
+          captureFocusArea(tempFocusArea);
+        }, 50);
+      } else {
+        // Show a notification if area is too small
+        // You could implement a toast notification here
+        console.log("Selected area is too small. Please select a larger area.");
+        setIsSelectingFocusArea(true); // Keep selection mode active
+      }
+      
       setDragStart(null);
       return;
     }
     
     // Normal çizim işlemleri için useDrawing hook'undaki handler'ı çağır
     handleMouseUp();
+  };
+  
+  // Dokunmatik mouse yukarı işleyicisi
+  const customHandleTouchEnd = () => {
+    // Focus alanı seçiliyorsa
+    if (isSelectingFocusArea && dragStart && focusArea) {
+      // Create a copy of the focus area to avoid state issues
+      const tempFocusArea = { ...focusArea };
+      
+      // Only proceed if the area is large enough
+      if (tempFocusArea.width >= 20 && tempFocusArea.height >= 20) {
+        // Wait a moment to ensure state is stable before capturing
+        setTimeout(() => {
+          captureFocusArea(tempFocusArea);
+        }, 50);
+      } else {
+        // Show a notification if area is too small
+        console.log("Selected area is too small. Please select a larger area.");
+        setIsSelectingFocusArea(true); // Keep selection mode active
+      }
+      
+      setDragStart(null);
+      return;
+    }
+    
+    // Normal çizim işlemleri için useDrawing hook'undaki handler'ı çağır
+    handleTouchEnd();
   };
   
   // Toolbar sürükleme işleyicileri
@@ -274,7 +423,7 @@ const DigitalTeachingTool = () => {
     if (isDoublePageView) {
       goToPage(Math.max(currentPage - 2, 1));
     } else {
-      goToPage(currentPage - 1);
+      goToPage(Math.max(currentPage - 1, 1));
     }
   };
   
@@ -299,7 +448,7 @@ const DigitalTeachingTool = () => {
   return (
     <div 
       ref={containerRef}
-      className={`digital-teaching-container ${isDarkMode ? 'digital-teaching-container--dark' : 'digital-teaching-container--light'}`}
+      className={`digital-teaching-container ${isDarkMode ? 'digital-teaching-container--dark' : 'digital-teaching-container--light'} ${isTouchDevice ? 'touch-device' : ''}`}
       onMouseMove={(e) => {
         handleMouseMoveToolbar(e);
         handleMouseMove(e);
@@ -307,6 +456,14 @@ const DigitalTeachingTool = () => {
       onMouseUp={() => {
         stopDraggingToolbar();
         customHandleMouseUp();
+      }}
+      onTouchMove={(e) => {
+        // Dokunmatik olayları engelle
+        e.preventDefault();
+      }}
+      onTouchEnd={() => {
+        stopDraggingToolbar();
+        customHandleTouchEnd();
       }}
     >
       {/* Sayfa görüntüleyici */}
@@ -331,6 +488,9 @@ const DigitalTeachingTool = () => {
         handleMouseDown={handleMouseDown}
         handleMouseMove={handleMouseMove}
         handleMouseUp={customHandleMouseUp}
+        handleTouchStart={handleTouchStart}
+        handleTouchMove={handleTouchMove}
+        handleTouchEnd={customHandleTouchEnd}
         lines={lines}
         currentLine={currentLine}
       />
@@ -344,8 +504,48 @@ const DigitalTeachingTool = () => {
             top: `${focusArea.y}px`,
             width: `${focusArea.width}px`,
             height: `${focusArea.height}px`,
+            border: '2px dashed #3b82f6', // Use a more visible blue color
+            backgroundColor: 'rgba(59, 130, 246, 0.1)', // Light blue background
+            pointerEvents: 'none',
+            zIndex: 700,
+            boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.2)', // Add subtle white outline for visibility
+            transition: 'border-color 0.2s ease', // Smooth transition for visual feedback
           }}
         />
+      )}
+
+      {/* Focus selection mode indicator */}
+      {isSelectingFocusArea && (
+        <div 
+          style={{
+            position: 'absolute',
+            top: '80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+            color: isDarkMode ? '#f9fafb' : '#1f2937',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            fontSize: '14px',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            zIndex: 750,
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <div 
+            style={{ 
+              width: '12px', 
+              height: '12px', 
+              backgroundColor: '#3b82f6', 
+              borderRadius: '50%', 
+              animation: 'pulse 1.5s infinite' 
+            }} 
+          />
+          {isTouchDevice ? 'Tap and drag to select focus area' : 'Click and drag to select focus area'}
+        </div>
       )}
 
       {/* Araç çubuğu */}
@@ -376,6 +576,9 @@ const DigitalTeachingTool = () => {
         setShowSettings={setShowSettings}
         showCurtain={showCurtain}
         setShowCurtain={setShowCurtain}
+        isTouchDevice={isTouchDevice}
+        isToolbarCollapsed={isToolbarCollapsed}  // Yeni prop
+        setToolbarCollapsed={setIsToolbarCollapsed}  // Yeni prop
       />
       
       {/* Araç seçenekleri panel */}
@@ -452,6 +655,7 @@ const DigitalTeachingTool = () => {
         {tool !== 'hand' ? `Drawing: ${tool} (${strokeWidth}px)` : 'Navigation mode'}
         {` • Zoom: ${Math.round(zoom * 100)}%`}
         {` • View: ${isDoublePageView ? 'Double Page' : isHalfPageView ? 'Half Page' : 'Single Page'}`}
+        {` • Press F for focus tool, Space for hand tool`}
       </div>
     </div>
   );

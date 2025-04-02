@@ -12,13 +12,14 @@ const useImageDecryption = () => {
   
   useEffect(() => {
     // Şifrelenmiş kitap sayfaları
+    // .ifp uzantılı dosyaları kullanacak şekilde güncellendi
     const encryptedBookPages = [
-      { id: 1, src: 'encrypted/page1.jpg' },
-      { id: 2, src: 'encrypted/page2.jpg' },
-      { id: 3, src: 'encrypted/page3.jpg' },
-      { id: 4, src: 'encrypted/page4.jpg' },
-      { id: 5, src: 'encrypted/page5.jpg' },
-      { id: 6, src: 'encrypted/page6.jpg' },
+      { id: 1, src: 'encrypted/page1.ifp' },
+      { id: 2, src: 'encrypted/page2.ifp' },
+      { id: 3, src: 'encrypted/page3.ifp' },
+      { id: 4, src: 'encrypted/page4.ifp' },
+      { id: 5, src: 'encrypted/page5.ifp' },
+      { id: 6, src: 'encrypted/page6.ifp' },
       // Diğer sayfaları burada ekleyin
     ];
     

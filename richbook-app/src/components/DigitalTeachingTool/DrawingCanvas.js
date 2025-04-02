@@ -12,6 +12,9 @@ const DrawingCanvas = ({
   handleMouseDown,
   handleMouseMove,
   handleMouseUp,
+  handleTouchStart,
+  handleTouchMove,
+  handleTouchEnd,
   lines,
   currentLine
 }) => {
@@ -24,12 +27,16 @@ const DrawingCanvas = ({
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       className={`drawing-stage 
         ${showCurtain ? 'drawing-stage--above-curtain' : ''}
         ${tool === 'hand' && !isSelectingFocusArea ? 'drawing-stage--hand-tool' : 'drawing-stage--drawing-tool'}
       `}
       style={{ 
-        cursor: isSelectingFocusArea ? 'crosshair' : (tool === 'hand' ? 'grab' : 'crosshair')
+        cursor: isSelectingFocusArea ? 'crosshair' : (tool === 'hand' ? 'grab' : 'crosshair'),
+        touchAction: 'none' // Dokunmatik cihazlarda tarayıcı kaydırmasını engelle
       }}
     >
       <Layer>
@@ -47,6 +54,8 @@ const DrawingCanvas = ({
             globalCompositeOperation={
               line.tool === 'eraser' ? 'destination-out' : 'source-over'
             }
+            perfectDrawEnabled={false} // Performans için
+            listening={false} // Performans için
           />
         ))}
         
@@ -63,6 +72,8 @@ const DrawingCanvas = ({
             globalCompositeOperation={
               currentLine.tool === 'eraser' ? 'destination-out' : 'source-over'
             }
+            perfectDrawEnabled={false} // Performans için
+            listening={false} // Performans için
           />
         )}
       </Layer>

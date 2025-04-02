@@ -67,19 +67,26 @@ function encryptDirectory(inputDir, outputDir, extensions = ['.jpg', '.jpeg', '.
   // Şifrelenecek dosyaları bulma
   files.forEach(file => {
     const filePath = path.join(inputDir, file);
-    const outputPath = path.join(outputDir, file);
     
     // Dosya durumunu kontrol et
     const stat = fs.statSync(filePath);
     
     if (stat.isDirectory()) {
       // Alt klasör varsa, rekursif olarak işle
-      encryptDirectory(filePath, outputPath, extensions);
+      encryptDirectory(filePath, path.join(outputDir, file), extensions);
     } else if (stat.isFile()) {
       // Dosya uzantısını kontrol et
       const ext = path.extname(file).toLowerCase();
       if (extensions.includes(ext)) {
         totalFiles++;
+        
+        // Dosya adını ve uzantısını ayır
+        const baseName = path.basename(file, ext);
+        
+        // Şifrelenmiş dosyanın uzantısını .ifp olarak değiştir
+        const outputFileName = `${baseName}.ifp`;
+        const outputPath = path.join(outputDir, outputFileName);
+        
         // Dosyayı şifrele
         encryptFile(filePath, outputPath);
         encryptedFiles++;

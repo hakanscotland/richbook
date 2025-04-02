@@ -3,13 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- iPad ve dokunmatik cihazlar için viewport meta etiketini güncelleme -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RichBook">
+ 
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="New RichBook Web App"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -24,7 +30,29 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+      
+    <title>RichBook App</title>
+    <script>
+      // Dokunmatik cihaz tespiti ve HTML sınıfı ekleme
+      document.addEventListener('DOMContentLoaded', function() {
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
+          document.documentElement.classList.add('has-touch-ui');
+          document.body.classList.add('has-touch-ui');
+        }
+      });
+      
+      // iOS'ta dokunmatik olayların çalışması için zorla düzeltme 
+      document.addEventListener('touchmove', function(e) {
+        if(e.target.tagName !== 'CANVAS') {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      // iPad'de çift dokunma ile yakınlaştırmayı engelleme
+      document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

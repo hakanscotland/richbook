@@ -621,3 +621,143 @@
   border-color: rgba(255, 255, 255, 0.1);
   border-top-color: #3b82f6;
 }
+
+/* src/components/DigitalTeachingTool.css dosyasına eklenecek dokunmatik cihaz destekleri */
+
+/* Dokunmatik cihazlar için özel stiller */
+@media (pointer: coarse) {
+  .toolbar-button {
+    min-height: 44px; /* Apple'ın dokunmatik hedefleri için önerdiği minimum yükseklik */
+    min-width: 44px;
+    margin: 4px; /* Butonlar arasında daha fazla boşluk bırakın */
+  }
+  
+  .drawing-stage {
+    touch-action: none !important; /* Dokunmatik kaydırmayı engelle */
+  }
+  
+  /* iPad'de sayfanın kaydırılmasını engelle */
+  body.has-touch-ui, 
+  html.has-touch-ui {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overscroll-behavior: none; /* Safari için kaydırma davranışını engelle */
+  }
+
+  /* Toolbar'ın dokunmatik cihazlarda daha büyük görünmesi */
+  .toolbar {
+    width: 70px !important; /* Daha geniş toolbar */
+    padding: 8px 4px !important;
+  }
+  
+  /* Renk seçiciyi dokunmatik cihazlar için optimize et */
+  .color-swatch {
+    width: 36px !important; 
+    height: 36px !important;
+    margin: 4px !important;
+  }
+  
+  /* Kalınlık seçicileri için daha büyük tıklama alanı */
+  .thickness-swatch {
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+  
+  /* Range input dokunmatik cihazlar için ölçeklendir */
+  input[type="range"] {
+    width: 100% !important;
+    height: 36px !important;
+  }
+  
+  /* Seçim dikdörtgeni sınırlarını daha belirgin yap */
+  .selection-rect {
+    border-width: 3px !important;
+  }
+}
+
+/* iPad ve dokunmatik cihazlara özel animasyon hızlandırmaları */
+.touch-device .drawing-stage {
+  will-change: transform; /* Donanım hızlandırmasını etkinleştir */
+}
+
+.touch-device .page-scaling {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* iPad için dokunmatik olay hataları için zorla düzeltme */
+.touch-device * {
+  touch-action: manipulation; /* Çift tıklama gecikmesini kaldır */
+}
+
+/* Dokunmatik cihazlarda performansı artırmak için */
+@supports (-webkit-touch-callout: none) {
+  /* Safari için dokunmatik düzeltmeleri */
+  canvas {
+    transform: translateZ(0); /* Safari'de grafik hızlandırma */
+  }
+  
+  .drawing-stage {
+    -webkit-tap-highlight-color: transparent; /* Dokunmatik vurgulamayı kaldır */
+  }
+  
+  /* iPad'de Safari için kaydırma davranışını engelle */
+  .digital-teaching-container {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    -webkit-overflow-scrolling: none;
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Dokunmatik basma animasyonu - geri bildirim için */
+@keyframes touchPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.touch-device .toolbar-button:active {
+  animation: touchPulse 0.2s ease;
+}
+
+/* Dokunmatik geri bildirim için pulse animasyonu */
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+/* Toolbar daraltılmış durum stili */
+.toolbar--collapsed {
+  height: auto !important;
+  min-height: unset;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.toolbar--collapsed .toolbar-header {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+/* Geçiş animasyonları */
+.toolbar {
+  transition: height 0.3s ease, opacity 0.2s ease;
+}
+
+/* Tablet/mobil için daraltılmış toolbar optimizasyonu */
+@media (pointer: coarse) {
+  .toolbar--collapsed {
+    width: 44px !important; /* Dokunmatik cihazlarda daha kompakt */
+  }
+  
+  .toolbar--collapsed .toolbar-header {
+    padding: 4px;
+  }
+}
