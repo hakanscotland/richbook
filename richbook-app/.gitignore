@@ -10,6 +10,10 @@
 
 # production
 /build
+/build/electron
+
+# dist
+/dist
 
 # misc
 .DS_Store
