@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { createCanvas, loadImage } = require('canvas');
 
-// Şifreleme için kullanılacak anahtar - encrypt.js ile aynı anahtar kullanılmalı
-const SECRET_KEY = "Sm464436!";
+// Şifreleme için kullanılacak anahtar - browserEncrypt.js ile aynı anahtar kullanılmalı
+const SECRET_KEY = "Sm464436!"; // This key must match the one in browserEncrypt.js
 
 /**
  * Base64 formatında bir görüntüyü şifreler

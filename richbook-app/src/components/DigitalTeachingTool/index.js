@@ -5,14 +5,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import Toolbar from './Toolbar';
 import PageRenderer from './PageRenderer';
 import DrawingCanvas from './DrawingCanvas';
-import FocusArea from './FocusArea';
+import FocusArea from './FocusToolV2'; // Yeni FocusToolV2'yi kullanıyoruz
 import ThumbnailSidebar from './ThumbnailSidebar';
 import ToolOptions from './ToolOptions';
 import Curtain from '../Curtain'; // Üst düzey bileşenlerden biri
 import SettingsMenu from '../SettingsMenu'; // Üst düzey bileşenlerden biri
 import useDrawing from './hooks/useDrawing';
 import useImageDecryption from './hooks/useImageDecryption';
-import html2canvas from 'html2canvas';
 import './DigitalTeachingTool.css';
 
 const DigitalTeachingTool = () => {
@@ -157,8 +156,16 @@ const DigitalTeachingTool = () => {
       
       // Konva performans ayarları
       stage.listening(true); // Olayları dinlemeyi etkinleştir
-      stage.perfectDrawEnabled(false); // Mükemmel çizim modunu devre dışı bırak
-      stage.transformsEnabled('position'); // Sadece pozisyon dönüşümlerini etkinleştir
+      
+      // perfectDrawEnabled metodu için güvenli kontrol
+      if (typeof stage.perfectDrawEnabled === 'function') {
+        stage.perfectDrawEnabled(false); // Mükemmel çizim modunu devre dışı bırak
+      }
+      
+      // Transformations kontrolü
+      if (typeof stage.transformsEnabled === 'function') {
+        stage.transformsEnabled('position'); // Sadece pozisyon dönüşümlerini etkinleştir
+      }
     }
   }, [isTouchDevice]);
   
@@ -239,100 +246,148 @@ const DigitalTeachingTool = () => {
     };
   }, [tool, previousTool, isFocusMode, isSelectingFocusArea]);
 
-  // Focus alanı ekran görüntüsü alma fonksiyonu
+  // Focus alanı ekran görüntüsü alma fonksiyonu - alternatif yöntem
   const captureFocusArea = async (area) => {
-    // Validate the area dimensions
+    // Alan boyutlarını kontrol et
     if (!area || area.width < 20 || area.height < 20) {
-      console.log("Area too small or invalid");
+      console.log("Alan çok küçük veya geçersiz");
       return;
     }
     
     const containerElement = containerRef.current;
     if (!containerElement) {
-      console.error("Container element not found");
+      console.error("Konteyner elementi bulunamadı");
       return;
     }
     
-    // Hide the selection rectangle temporarily
+    // Seçim dikdörtgenini geçici olarak gizle
     const tempArea = {...area};
     setFocusArea(null);
     
-    // Add a short delay to ensure UI updates before capture
+    // Görüntü yakalamadan önce UI güncellemesini beklemek için kısa bir gecikme ekle
     await new Promise(resolve => setTimeout(resolve, 200));
     
     try {
-      // Capture the entire container
-      const canvas = await html2canvas(containerElement, {
-        scrollX: 0,
-        scrollY: 0,
-        scale: window.devicePixelRatio || 1, // Use device pixel ratio for better quality
-        useCORS: true,
-        allowTaint: true,
-        ignoreElements: (element) => {
-          return element.classList && 
-                 (element.classList.contains('selection-rect') || 
-                  element.classList.contains('toolbar') ||
-                  element.classList.contains('tool-options-panel'));
-        }
-      });
+      // Basit canvas metodu
+      const canvas = document.createElement('canvas');
+      const pixelRatio = window.devicePixelRatio || 2;
       
-      // Calculate coordinates with zoom consideration
-      const x = Math.floor(tempArea.x);
-      const y = Math.floor(tempArea.y);
-      const width = Math.ceil(tempArea.width);
-      const height = Math.ceil(tempArea.height);
+      // Zoom'u hesaba katarak doğru boyutları belirle
+      const x = Math.floor(tempArea.x / zoom);
+      const y = Math.floor(tempArea.y / zoom);
+      const width = Math.ceil(tempArea.width / zoom);
+      const height = Math.ceil(tempArea.height / zoom);
       
-      // Crop the captured image
+      // Canvas boyutlarını yüksek DPI için ayarla
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
+      
       const ctx = canvas.getContext('2d');
-      const actualX = Math.max(0, x);
-      const actualY = Math.max(0, y);
-      const actualWidth = Math.min(width, canvas.width - actualX);
-      const actualHeight = Math.min(height, canvas.height - actualY);
       
-      if (actualWidth <= 0 || actualHeight <= 0) {
-        throw new Error("Invalid cropping dimensions");
+      // Yüksek kaliteli render için ölçeklendirme
+      ctx.scale(pixelRatio, pixelRatio);
+      
+      // Arka planı doldur
+      ctx.fillStyle = isDarkMode ? '#1f2937' : '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      
+      // Görüntü kaynaklarını çıkar
+      // 1. Sayfanın kendisi
+      const pageImage = decryptedImages[currentPage];
+      
+      // 2. Çizimler
+      const drawingsStage = stageRef.current;
+      
+      if (pageImage) {
+        // Sayfa görüntüsünü çiz
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        
+        // Görüntü yükleme işleyicisi
+        img.onload = () => {
+          // İlgili bölgeyi canvas'a aktar
+          ctx.drawImage(
+            img,
+            x, y, width, height, // Kaynak alan (kırpma bölgesi)
+            0, 0, width, height  // Hedef alan
+          );
+          
+          if (drawingsStage) {
+            try {
+              // Mevcut çizimleri ekle
+              const drawingLayer = drawingsStage.findOne('Layer');
+              const drawingLayerCanvas = drawingLayer.getCanvas()._canvas;
+              
+              ctx.globalCompositeOperation = 'source-over';
+              ctx.drawImage(
+                drawingLayerCanvas,
+                x, y, width, height, // Kaynak alan
+                0, 0, width, height  // Hedef alan
+              );
+              
+              // PNG olarak görüntü URL'si oluştur
+              const dataURL = canvas.toDataURL('image/png');
+              
+              // Focus alanını güncelle
+              setFocusArea({
+                ...tempArea,
+                dataURL: dataURL,
+                originalWidth: width,
+                originalHeight: height,
+                initialZoom: 1.2 // Başlangıç zoom seviyesi
+              });
+              
+              setIsFocusMode(true);
+              setIsSelectingFocusArea(false);
+            } catch (drawingError) {
+              console.error("Drawing capture error:", drawingError);
+              createFallbackImage();
+            }
+          } else {
+            // Sadece sayfa görüntüsü
+            const dataURL = canvas.toDataURL('image/png');
+              
+            // Focus alanını güncelle
+            setFocusArea({
+              ...tempArea,
+              dataURL: dataURL,
+              originalWidth: width,
+              originalHeight: height,
+              initialZoom: 1.2
+            });
+            
+            setIsFocusMode(true);
+            setIsSelectingFocusArea(false);
+          }
+        };
+        
+        // Hata durumunda yedek görüntü oluştur
+        img.onerror = createFallbackImage;
+        
+        // Görüntü kaynağını ata
+        img.src = pageImage;
+      } else {
+        createFallbackImage();
       }
-      
-      // Create a new canvas for the cropped area
-      const croppedCanvas = document.createElement('canvas');
-      croppedCanvas.width = actualWidth;
-      croppedCanvas.height = actualHeight;
-      const croppedCtx = croppedCanvas.getContext('2d');
-      
-      // Copy the image data from the source canvas to the cropped canvas
-      const imageData = ctx.getImageData(actualX, actualY, actualWidth, actualHeight);
-      croppedCtx.putImageData(imageData, 0, 0);
-      
-      // Get the data URL
-      const dataURL = croppedCanvas.toDataURL('image/png');
-      
-      // Update focus area with better initial zoom
-      setFocusArea({
-        ...tempArea,
-        dataURL: dataURL,
-        originalWidth: actualWidth,
-        originalHeight: actualHeight,
-        initialZoom: 1.2 // Başlangıç zoom seviyesini ayarla
-      });
-      
-      setIsFocusMode(true);
-      setIsSelectingFocusArea(false);
     } catch (error) {
       console.error("Error capturing focus area:", error);
-      
-      // Create a fallback image if capture fails
+      createFallbackImage();
+    }
+    
+    // Hata durumunda kullanılacak yedek görüntü
+    function createFallbackImage() {
       const fallbackCanvas = document.createElement('canvas');
       fallbackCanvas.width = tempArea.width;
       fallbackCanvas.height = tempArea.height;
       const fallbackCtx = fallbackCanvas.getContext('2d');
-      fallbackCtx.fillStyle = '#f0f0f0';
+      fallbackCtx.fillStyle = isDarkMode ? '#1f2937' : '#f0f0f0';
       fallbackCtx.fillRect(0, 0, tempArea.width, tempArea.height);
       fallbackCtx.font = '14px Arial';
-      fallbackCtx.fillStyle = 'black';
+      fallbackCtx.fillStyle = isDarkMode ? '#ffffff' : '#000000';
       fallbackCtx.textAlign = 'center';
       fallbackCtx.fillText('Görüntü alınamadı', tempArea.width/2, tempArea.height/2);
       
-      // Use the fallback image
+      // Yedek görüntüyü kullan
       setFocusArea({
         ...tempArea,
         dataURL: fallbackCanvas.toDataURL(),
@@ -375,7 +430,7 @@ const DigitalTeachingTool = () => {
   };
   
   // Dokunmatik mouse yukarı işleyicisi
-  const customHandleTouchEnd = () => {
+  const customHandleTouchEnd = (e) => {
     // Focus alanı seçiliyorsa
     if (isSelectingFocusArea && dragStart && focusArea) {
       // Create a copy of the focus area to avoid state issues
@@ -398,7 +453,7 @@ const DigitalTeachingTool = () => {
     }
     
     // Normal çizim işlemleri için useDrawing hook'undaki handler'ı çağır
-    handleTouchEnd();
+    handleTouchEnd(e);
   };
   
   // Toolbar sürükleme işleyicileri
@@ -644,7 +699,7 @@ const DigitalTeachingTool = () => {
         />
       )}
       
-      {/* Odak alanı penceresi - İlk adım olarak geçici devre dışı bırakalım */}
+      {/* Odak alanı penceresi - Yeni V2 Focus Tool kullanılıyor */}
       {isFocusMode && focusArea && (
         <FocusArea 
           focusArea={focusArea}

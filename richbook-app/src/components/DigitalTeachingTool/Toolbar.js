@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { 
   Hand, Pencil, Highlighter, Eraser, Search, Trash2,
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut,
-  Grid, Settings, Move, X, ChevronUp, ChevronDown
+  Grid, Settings, Move, X, ChevronDown
 } from 'lucide-react';
 
 const Toolbar = ({ 

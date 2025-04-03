@@ -1,0 +1,275 @@
+.toolbar {
+  position: absolute;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 950;
+  /* !important ekleyerek mutlaka yakalanmasını sağlayacak */
+  pointer-events: auto !important;
+  width: 70px; /* Daha kompakt genişlik */
+  max-width: 120px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+}
+
+.toolbar--light {
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+}
+
+.toolbar--dark {
+  background-color: rgba(31, 41, 55, 0.92);
+  color: #f9fafb;
+  border: 1px solid #4b5563;
+}
+
+.toolbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid;
+  cursor: move;
+}
+
+.toolbar--light .toolbar-header {
+  border-color: #e5e7eb;
+}
+
+.toolbar--dark .toolbar-header {
+  border-color: #4b5563;
+}
+
+.toolbar-clock {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  padding: 4px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.toolbar--dark .toolbar-clock {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-button-group {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 2px;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 5px;
+  padding: 3px;
+  pointer-events: auto !important;
+}
+
+.toolbar-button-group--dark {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.toolbar-button-group--light {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.toolbar-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  position: relative;
+  flex: 1;
+  min-width: 32px;
+  height: 32px;
+  pointer-events: auto !important;
+}
+
+.toolbar-button--light {
+  background-color: #f9fafb;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+}
+
+.toolbar-button--dark {
+  background-color: #374151;
+  color: #f9fafb;
+  border: 1px solid #4b5563;
+}
+
+.toolbar-button--active {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border-color: #2563eb !important;
+}
+
+.toolbar-button--light:hover {
+  background-color: #e5e7eb;
+}
+
+.toolbar-button--dark:hover {
+  background-color: #4b5563;
+}
+
+.toolbar-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-navigation {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 5px 0;
+}
+
+.page-nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 2px;
+}
+
+.page-indicator {
+  padding: 2px 6px;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  margin: 0 4px;
+  cursor: pointer;
+  text-align: center;
+  min-width: 50px;
+}
+
+.page-indicator--light {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.page-indicator--dark {
+  background-color: #4b5563;
+  color: #f9fafb;
+}
+
+.page-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  width: 100%;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.page-nav-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.page-nav-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.page-nav-button--light {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.page-nav-button--dark {
+  background-color: #374151;
+  color: #f3f4f6;
+  border: 1px solid #4b5563;
+}
+
+.page-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.curtain-icon {
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+  clip-path: polygon(0 0, 100% 0, 100% 25%, 0 25%, 0 50%, 100% 50%, 100% 75%, 0 75%, 0 100%, 100% 100%);
+}
+
+/* Tooltip */
+.tooltip {
+  position: relative;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+.tooltip:hover::before {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
+  z-index: 1000;
+}
+
+/* Responsive toolbar */
+@media (max-height: 700px) {
+  .toolbar {
+    padding: 4px;
+    gap: 4px;
+  }
+  
+  .toolbar-button {
+    padding: 4px;
+    height: 28px;
+    min-width: 28px;
+  }
+  
+  .toolbar-clock {
+    font-size: 0.75rem;
+  }
+}
+
+/* Collapsed durumu */
+.toolbar--collapsed {
+  width: auto;
+  height: auto;
+}
+
+/* Hover effect */
+.toolbar:not(.toolbar--collapsed):hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+}

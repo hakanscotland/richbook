@@ -1,5 +1,5 @@
 // src/components/DigitalTeachingTool/hooks/useDrawing.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 /**
  * Çizim işlevselliği için özel hook
@@ -39,7 +39,8 @@ const useDrawing = ({
     // Yeni sayfadaki çizimleri yükle
     const savedDrawings = pageDrawings[currentPage] || [];
     setLines(savedDrawings);
-    }, [currentPage, pageDrawings, setPageDrawings, lines]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, pageDrawings, setPageDrawings]);  // lines dependency removed to prevent circular updates
   
   // Mouse down işleyicisi
   const handleMouseDown = (e) => {
@@ -69,9 +70,18 @@ const useDrawing = ({
     const pointerPosition = stage.getPointerPosition();
     if (!pointerPosition) return;
     
-    // Zoom'a göre konumu ayarla
-    const x = pointerPosition.x / zoom;
-    const y = pointerPosition.y / zoom;
+    // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
+    // Bu değişiklik, çizim noktasının doğru konumda olmasını sağlar
+    // NOT: Burada zoom'u böldüğümüz için, dokunmatik/fare pozisyonu Stage içinde,
+    // ancak Layer içindeki gerçek çizim pozisyonu için bu ayarlanmalıdır.
+    const stageOffset = {
+      x: stage.x(),
+      y: stage.y()
+    };
+
+    // Mouse/touch pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
+    const x = (pointerPosition.x - stageOffset.x) / zoom;
+    const y = (pointerPosition.y - stageOffset.y) / zoom;
     
     // Araç özelliklerine göre yeni çizgi oluştur
     let newLine = {
@@ -131,9 +141,15 @@ const useDrawing = ({
     const pointerPosition = stage.getPointerPosition();
     if (!pointerPosition) return;
     
-    // Zoom'a göre konumu ayarla
-    const x = pointerPosition.x / zoom;
-    const y = pointerPosition.y / zoom;
+    // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
+    const stageOffset = {
+      x: stage.x(),
+      y: stage.y()
+    };
+    
+    // Mouse/touch pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
+    const x = (pointerPosition.x - stageOffset.x) / zoom;
+    const y = (pointerPosition.y - stageOffset.y) / zoom;
     
     setCurrentLine({
       ...currentLine,
@@ -184,17 +200,16 @@ const useDrawing = ({
         const offsetX = touch.clientX - boundingRect.left;
         const offsetY = touch.clientY - boundingRect.top;
 
-          // Zoom'a göre konumu ayarla
-        const x = offsetX / zoom;
-        const y = offsetY / zoom;
-        
-        // Araç özelliklerine göre yeni çizgi oluştur
-        let newLine = {
-          tool,
-          points: [x, y],
-          strokeWidth,
+        // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
+        const stageOffset = {
+          x: stage.x(),
+          y: stage.y()
         };
 
+        // Dokunmatik pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
+        const x = (offsetX - stageOffset.x) / zoom;
+        const y = (offsetY - stageOffset.y) / zoom;
+        
         setDragStart({
           x: offsetX,
           y: offsetY
@@ -214,10 +229,15 @@ const useDrawing = ({
     const pointerPosition = stage.getPointerPosition();
     if (!pointerPosition) return;
     
+    // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
+    const stageOffset = {
+      x: stage.x(),
+      y: stage.y()
+    };
     
-    // Zoom'a göre konumu ayarla
-    const x = pointerPosition.x / zoom;
-    const y = pointerPosition.y / zoom;
+    // Mouse/touch pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
+    const x = (pointerPosition.x - stageOffset.x) / zoom;
+    const y = (pointerPosition.y - stageOffset.y) / zoom;
     
     // Araç özelliklerine göre yeni çizgi oluştur
     let newLine = {
@@ -227,8 +247,9 @@ const useDrawing = ({
     };
     
    // Apple Pencil basınç desteği
-  if (touch.force !== undefined && touch.force > 0) {
-    const pressureValue = Math.min(touch.force / 2, 1);
+  if (e.evt && e.evt.touches && e.evt.touches[0] && e.evt.touches[0].force !== undefined && e.evt.touches[0].force > 0) {
+    const touchForce = e.evt.touches[0].force;
+    const pressureValue = Math.min(touchForce / 2, 1);
     newLine.strokeWidth = Math.max(1, strokeWidth * pressureValue * 2);
   }
   
@@ -288,9 +309,15 @@ const useDrawing = ({
       
       if (!isDrawing || !currentLine) return;
       
-      // Zoom'a göre konumu ayarla
-      const x = offsetX / zoom;
-      const y = offsetY / zoom;
+      // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
+      const stageOffset = {
+        x: stage.x(),
+        y: stage.y()
+      };
+      
+      // Dokunmatik pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
+      const x = (offsetX - stageOffset.x) / zoom;
+      const y = (offsetY - stageOffset.y) / zoom;
       
       // Apple Pencil basınç güncellemesi
       let updatedLine = {
@@ -298,9 +325,10 @@ const useDrawing = ({
         points: [...currentLine.points, x, y]
       };
       
-      if (touch.force !== undefined && touch.force > 0) {
+      if (e.evt && e.evt.touches && e.evt.touches[0] && e.evt.touches[0].force !== undefined && e.evt.touches[0].force > 0) {
         // Basınç değişimine göre kalem kalınlığını güncelle
-        const pressureValue = Math.min(touch.force / 2, 1);
+        const touchForce = e.evt.touches[0].force;
+        const pressureValue = Math.min(touchForce / 2, 1);
         const baseStrokeWidth = tool === 'highlighter' ? strokeWidth * 2 : 
                               tool === 'eraser' ? strokeWidth * 3 : 
                               strokeWidth;
@@ -361,7 +389,8 @@ const useDrawing = ({
   };
   
   // Throttled dokunmatik hareket işleyicisi
-  const throttledTouchMove = throttle(handleTouchMove, 16); // ~60fps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const throttledTouchMove = useCallback(throttle(handleTouchMove, 16), [handleTouchMove]); // ~60fps
 
 
   return {

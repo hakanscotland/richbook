@@ -60,7 +60,8 @@ const DrawingCanvas = ({
             globalCompositeOperation={
               line.tool === 'eraser' ? 'destination-out' : 'source-over'
             }
-            perfectDrawEnabled={false} // Performans için
+            // Modern Konva sürümlerinde bu özellikler farklı olabilir
+            // Gerçek konva sürümünüze göre özellikler ayarlanmalıdır
             listening={false} // Performans için
           />
         ))}
@@ -78,7 +79,7 @@ const DrawingCanvas = ({
             globalCompositeOperation={
               currentLine.tool === 'eraser' ? 'destination-out' : 'source-over'
             }
-            perfectDrawEnabled={false} // Performans için
+            // Modern Konva sürümlerinde bu özellikler farklı olabilir
             listening={false} // Performans için
           />
         )}
