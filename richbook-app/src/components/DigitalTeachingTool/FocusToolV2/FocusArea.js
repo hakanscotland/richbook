@@ -472,7 +472,7 @@ const FocusArea = ({
             }}
             title="Kapat"
           >
-            <CloseIcon size={18} />
+            <CloseIcon size={26} />
           </button>
         </div>
         

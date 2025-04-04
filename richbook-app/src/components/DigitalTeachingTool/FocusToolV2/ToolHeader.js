@@ -149,7 +149,7 @@ const ToolHeader = ({
           handleClose();
         }}
       >
-        ✕
+        <span style={{ fontSize: '24px', fontWeight: 'bold' }}>✕</span>
       </button>
     </div>
   );

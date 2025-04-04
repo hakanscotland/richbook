@@ -571,6 +571,9 @@ const DigitalTeachingTool = () => {
     setTool(newTool);
     setShowToolOptions(true);
     
+    // Araç seçildiğinde settings menüsünü kapat
+    setShowSettings(false);
+    
     // Araç türüne göre uygun değerleri ayarla
     if (newTool === 'highlighter') {
       setOpacity(0.4);

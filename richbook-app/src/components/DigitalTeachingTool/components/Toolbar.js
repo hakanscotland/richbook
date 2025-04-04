@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Hand, Pencil, Highlighter, Eraser, Search, Trash2,
+  Hand, Pencil, Highlighter, Eraser, Trash2,
   ArrowLeft, ArrowRight, ZoomIn, ZoomOut,
-  Grid, Settings, Move, X, ChevronDown, Eye, EyeOff, Clock
+  Grid, Settings, Move, X, ChevronDown, Clock
 } from 'lucide-react';
+import { CropIcon, CurtainClosedIcon, CurtainOpenIcon } from '../icons/CustomIcons';
 import TimerSettings from './TimerSettings';
+import ClockDisplay from './ClockDisplay';
 import './Toolbar.css';
 
 const Toolbar = ({ 
@@ -115,9 +117,9 @@ const Toolbar = ({
       {/* Toolbar içeriği - Collapse durumundaysa gizle */}
       {!isToolbarCollapsed && (
         <>
-          {/* Saat */}
+          {/* Dijital Saat - Yanıp sönen iki nokta ile */}
           <div className="toolbar-clock">
-            {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <ClockDisplay time={time} />
           </div>
           
           {/* Paired tool buttons in rows */}
@@ -205,7 +207,7 @@ const Toolbar = ({
               }}
               data-tooltip="Focus Tool"
             >
-              <Search size={22} />
+              <CropIcon size={22} />
             </button>
           </div>
           
@@ -259,7 +261,7 @@ const Toolbar = ({
               data-tooltip="Previous Page"
                 style={{ minHeight: isTouchDevice ? '40px' : '32px' }}
             >
-                <ArrowLeft size={20} />
+                <ArrowLeft size={isTouchDevice ? 24 : 20} />  {/* iPad ve touch cihazlar için daha büyük ikon */}
               </button>
               
               <button 
@@ -269,7 +271,7 @@ const Toolbar = ({
                 data-tooltip="Next Page"
                 style={{ minHeight: isTouchDevice ? '40px' : '32px' }}
               >
-                <ArrowRight size={20} />
+                <ArrowRight size={isTouchDevice ? 24 : 20} />  {/* iPad ve touch cihazlar için daha büyük ikon */}
               </button>
             </div>
           </div>
@@ -314,7 +316,7 @@ const Toolbar = ({
               onClick={() => setShowCurtain(!showCurtain)}
               data-tooltip="Curtain"
             >
-              {showCurtain ? <EyeOff size={22} /> : <Eye size={22} />}
+              {showCurtain ? <CurtainClosedIcon size={22} /> : <CurtainOpenIcon size={22} />}
             </button>
           </div>
           

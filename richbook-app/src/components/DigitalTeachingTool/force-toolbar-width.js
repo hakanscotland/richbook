@@ -29,13 +29,13 @@
       document.body.classList.add('ipad-device');
       
       // CSS değişkenini ayarla
-      document.documentElement.style.setProperty('--toolbar-width', '192px');
+      document.documentElement.style.setProperty('--toolbar-width', '160px');
       
       // Toolbar öğelerini bul ve doğrudan stil uygula
       setTimeout(() => {
         const toolbars = document.querySelectorAll('.toolbar');
         toolbars.forEach(toolbar => {
-          toolbar.style.width = '192px';
+          toolbar.style.width = '160px';
           console.log('[ForceToolbarWidth] Toolbar genişliği zorlandı:', toolbar);
         });
       }, 1000); // Sayfanın tamamen yüklenmesi için biraz bekle
