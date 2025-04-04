@@ -183,7 +183,7 @@ const DigitalTeachingTool = () => {
         console.log('iPad/Tablet algılandı:', isIPad ? 'iPad' : 'Tablet');
         document.documentElement.classList.add('ipad-device');
         document.body.classList.add('ipad-device');
-        document.documentElement.style.setProperty('--toolbar-width', '160px');
+        document.documentElement.style.setProperty('--toolbar-width', '192px');
       } else {
         document.documentElement.style.setProperty('--toolbar-width', '120px');
       }

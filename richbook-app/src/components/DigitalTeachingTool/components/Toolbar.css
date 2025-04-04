@@ -372,50 +372,50 @@
 
 /* iPad özel stiller */
 .ipad-device .toolbar {
-  width: 160px !important; /* iPad için daha da geniş */
+  width: 192px !important; /* iPad için %20 daha geniş (160px * 1.2 = 192px) */
   border-width: 4px !important; /* Daha belirgin kenar çizgisi */
 }
 
 html.ipad-device body {
-  --toolbar-width: 160px !important;
+  --toolbar-width: 192px !important;
 }
 
 .ipad-device .toolbar-button {
-  min-width: 60px !important;
-  width: 60px !important;
-  height: 60px;
-  padding: 5px !important;
+  min-width: 70px !important;
+  width: 70px !important;
+  height: 70px;
+  padding: 6px !important;
   border-width: 2px !important; /* Daha belirgin buton çerçevesi */
 }
 
 .ipad-device .toolbar-clock {
-  width: 90%;
+  width: 95%;
   font-size: 1.3rem;
   padding: 12px 0;
   border-radius: 12px;
 }
 
 .ipad-device .toolbar-button-pair {
-  width: 90%;
-  grid-gap: 15px;
-  margin-bottom: 5px;
+  width: 95%;
+  grid-gap: 16px;
+  margin-bottom: 6px;
 }
 
 .ipad-device .toolbar-navigation {
-  width: 90%;
+  width: 95%;
 }
 
 .ipad-device .page-nav-button {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
 }
 
 .ipad-device .toolbar-logo img {
-  width: 65px !important;
+  width: 80px !important;
 }
 
 .ipad-device .toolbar-logo-text {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
