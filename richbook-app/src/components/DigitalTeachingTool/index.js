@@ -14,8 +14,10 @@ import Curtain from '../Curtain'; // Üst düzey bileşenlerden biri
 import SettingsMenu from '../SettingsMenu'; // Üst düzey bileşenlerden biri
 import useDrawing from './hooks/useDrawing';
 import useImageDecryption from './hooks/useImageDecryption';
+import useGestures from './hooks/useGestures';
 import html2canvas from 'html2canvas'; // HTML2Canvas doğrudan dahil ediliyor
 import './DigitalTeachingTool.css';
+import './gestures.css'; // Çok parmak hareketleri için CSS
 
 const DigitalTeachingTool = () => {
   // Genel UI durumu
@@ -62,6 +64,12 @@ const DigitalTeachingTool = () => {
   const containerRef = useRef(null);
   const stageRef = useRef(null);
   
+  const {
+    pages,
+    isLoadingImages,
+    decryptedImages
+  } = useImageDecryption();
+  
   // Custom hooks
   const { 
     lines, 
@@ -91,11 +99,46 @@ const DigitalTeachingTool = () => {
     setDragStart
   });
   
+  // Sayfa navigasyon fonksiyonları
+  const goToPage = (pageNum) => {
+    if (pageNum >= 1 && pageNum <= pages.length) {
+      setCurrentPage(pageNum);
+    }
+  };
+  
+  const nextPage = () => {
+    if (isDoublePageView) {
+      goToPage(Math.min(currentPage + 2, pages.length));
+    } else {
+      goToPage(currentPage + 1);
+    }
+  };
+  
+  const prevPage = () => {
+    if (isDoublePageView) {
+      goToPage(Math.max(currentPage - 2, 1));
+    } else {
+      goToPage(Math.max(currentPage - 1, 1));
+    }
+  };
+  
+  // Gesture hooks (çok parmak hareketleri için)
   const {
-    pages,
-    isLoadingImages,
-    decryptedImages
-  } = useImageDecryption();
+    isPinchActive,
+    isSwipeActive
+  } = useGestures({
+    containerRef,
+    zoom,
+    setZoom,
+    currentPage,
+    totalPages: pages.length,
+    goToPage,
+    nextPage,
+    prevPage,
+    isDoublePageView,
+    isHalfPageView,
+    tool
+  });
   
   // Dokunmatik cihaz tespiti
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -501,29 +544,6 @@ const DigitalTeachingTool = () => {
     setIsDragging(false);
   };
   
-  // Sayfa navigasyon fonksiyonları
-  const goToPage = (pageNum) => {
-    if (pageNum >= 1 && pageNum <= pages.length) {
-      setCurrentPage(pageNum);
-    }
-  };
-
-  const nextPage = () => {
-    if (isDoublePageView) {
-      goToPage(Math.min(currentPage + 2, pages.length));
-    } else {
-      goToPage(currentPage + 1);
-    }
-  };
-  
-  const prevPage = () => {
-    if (isDoublePageView) {
-      goToPage(Math.max(currentPage - 2, 1));
-    } else {
-      goToPage(Math.max(currentPage - 1, 1));
-    }
-  };
-  
   // Araç seçim işleyicisi
   const selectTool = (newTool) => {
     setTool(newTool);
@@ -769,6 +789,17 @@ const DigitalTeachingTool = () => {
         {` • Zoom: ${Math.round(zoom * 100)}%`}
         {` • View: ${isDoublePageView ? 'Double Page' : isHalfPageView ? 'Half Page' : 'Single Page'}`}
         {` • Press F for focus tool, Space for hand tool`}
+      </div>
+      
+      {/* Çok parmak hareketi göstergeleri */}
+      <div className={`pinch-indicator ${isPinchActive ? 'active' : ''}`}>
+        <span className="pinch-indicator-icon">⇆</span>
+      </div>
+      <div className={`swipe-indicator swipe-indicator-left ${isSwipeActive ? 'active' : ''}`}>
+        <span className="swipe-indicator-icon">←</span>
+      </div>
+      <div className={`swipe-indicator swipe-indicator-right ${isSwipeActive ? 'active' : ''}`}>
+        <span className="swipe-indicator-icon">→</span>
       </div>
     </div>
   );

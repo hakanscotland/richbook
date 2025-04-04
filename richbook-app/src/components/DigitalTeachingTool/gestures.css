@@ -1,0 +1,140 @@
+/* Gesture (hareket) ilgili CSS stillerini içerir */
+
+/* Pinch-zoom işlemi sırasında gösterilecek indikatör */
+.pinch-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(59, 130, 246, 0.2);
+  border: 2px solid rgba(59, 130, 246, 0.8);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  pointer-events: none;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 1.5s ease-in-out infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pinch-indicator.active {
+  opacity: 1;
+}
+
+.pinch-indicator-icon {
+  font-size: 32px;
+  color: rgba(59, 130, 246, 0.8);
+}
+
+/* Sayfa kaydırma işlemi sırasında gösterilecek indikatör */
+.swipe-indicator {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  width: 40px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 900;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.swipe-indicator.active {
+  opacity: 1;
+}
+
+.swipe-indicator-left {
+  left: 20px;
+  transform: translateY(-50%) translateX(-20px);
+}
+
+.swipe-indicator-left.active {
+  transform: translateY(-50%) translateX(0);
+}
+
+.swipe-indicator-right {
+  right: 20px;
+  transform: translateY(-50%) translateX(20px);
+}
+
+.swipe-indicator-right.active {
+  transform: translateY(-50%) translateX(0);
+}
+
+.swipe-indicator-icon {
+  font-size: 24px;
+  color: white;
+}
+
+/* Pulsing animasyon efekti */
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+
+/* Dokunmatik cihazlara özel stil ayarlamaları */
+.touch-device .digital-teaching-container {
+  touch-action: pan-y; /* Dikey kaydırmayı varsayılan olarak etkinleştir */
+}
+
+.touch-device .status-info {
+  padding-bottom: env(safe-area-inset-bottom, 20px); /* iPhone X ve üzeri için alt bölge güvenliği */
+}
+
+/* Safari dokunmatik davranışlarını geçersiz kılmak için */
+.touch-device * {
+  -webkit-touch-callout: none; /* Safari menüsünü engelle */
+  -webkit-user-select: none;   /* Metin seçimini engelle */
+  -webkit-tap-highlight-color: transparent; /* Dokunma vurgusunu kaldır */
+}
+
+/* iPad için touch spesifik ayarlamalar */
+.ipad-device .pinch-indicator {
+  width: 100px;
+  height: 100px;
+}
+
+.ipad-device .swipe-indicator {
+  width: 50px;
+  height: 100px;
+}
+
+/* Çift dokunma (double-tap) görsel geri bildirim */
+.double-tap-indicator {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.3);
+  pointer-events: none;
+  z-index: 900;
+  animation: doubletap-pulse 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes doubletap-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
