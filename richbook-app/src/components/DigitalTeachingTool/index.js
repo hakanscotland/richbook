@@ -1,6 +1,8 @@
 // src/components/DigitalTeachingTool/index.js
 // Ana bileşen - sadece alt bileşenleri bir araya getirir ve durum yönetimini yapar
 
+// Import doğrudan html2canvas kütüphanesini dahil et, eğer bu kütüphane yüklü değilse
+// npm install html2canvas ile yükleyin
 import React, { useState, useEffect, useRef } from 'react';
 import Toolbar from './Toolbar';
 import PageRenderer from './PageRenderer';
@@ -12,6 +14,7 @@ import Curtain from '../Curtain'; // Üst düzey bileşenlerden biri
 import SettingsMenu from '../SettingsMenu'; // Üst düzey bileşenlerden biri
 import useDrawing from './hooks/useDrawing';
 import useImageDecryption from './hooks/useImageDecryption';
+import html2canvas from 'html2canvas'; // HTML2Canvas doğrudan dahil ediliyor
 import './DigitalTeachingTool.css';
 
 const DigitalTeachingTool = () => {
@@ -246,158 +249,160 @@ const DigitalTeachingTool = () => {
     };
   }, [tool, previousTool, isFocusMode, isSelectingFocusArea]);
 
-  // Focus alanı ekran görüntüsü alma fonksiyonu - alternatif yöntem
-  const captureFocusArea = async (area) => {
-    // Alan boyutlarını kontrol et
+  // HTML2Canvas ile ekran görüntüsü alma
+  const captureFocusArea = (area) => {
+    console.log('Yakalama başladı, seçilen alan:', area);
+    
+    // Alan boyut kontrolü
     if (!area || area.width < 20 || area.height < 20) {
-      console.log("Alan çok küçük veya geçersiz");
+      console.log("Alan çok küçük");
       return;
     }
-    
-    const containerElement = containerRef.current;
-    if (!containerElement) {
-      console.error("Konteyner elementi bulunamadı");
-      return;
-    }
-    
-    // Seçim dikdörtgenini geçici olarak gizle
-    const tempArea = {...area};
-    setFocusArea(null);
-    
-    // Görüntü yakalamadan önce UI güncellemesini beklemek için kısa bir gecikme ekle
-    await new Promise(resolve => setTimeout(resolve, 200));
     
     try {
-      // Basit canvas metodu
-      const canvas = document.createElement('canvas');
-      const pixelRatio = window.devicePixelRatio || 2;
+      // Maksimum kalitede yakalama yapmak için scale parametresini daha yüksek yap
+      const captureScale = window.devicePixelRatio || 2;
       
-      // Zoom'u hesaba katarak doğru boyutları belirle
-      const x = Math.floor(tempArea.x / zoom);
-      const y = Math.floor(tempArea.y / zoom);
-      const width = Math.ceil(tempArea.width / zoom);
-      const height = Math.ceil(tempArea.height / zoom);
+      // Önemli: Yüksek kaliteli görüntü için doğrudan tam görüntü alanını yakala
+      const captureOpts = {
+        allowTaint: true,      // Güvenlik kısıtlamalarını esnet
+        useCORS: true,         // Cross-origin görselleri yakalamaya çalış
+        scale: captureScale,   // Yüksek kalite görüntü için ölçekleme 
+        backgroundColor: isDarkMode ? '#111827' : '#ffffff',
+        logging: true,         // Hata ayıklama için
+        ignoreElements: (element) => {
+          // Bazı gereksiz elemanları yoksay
+          return element.classList && (
+            element.classList.contains('focus-modal') ||
+            element.classList.contains('selection-rect')
+          );
+        }
+      };
       
-      // Canvas boyutlarını yüksek DPI için ayarla
-      canvas.width = width * pixelRatio;
-      canvas.height = height * pixelRatio;
+      console.log('Yakalama ayarları:', captureOpts);
       
-      const ctx = canvas.getContext('2d');
-      
-      // Yüksek kaliteli render için ölçeklendirme
-      ctx.scale(pixelRatio, pixelRatio);
-      
-      // Arka planı doldur
-      ctx.fillStyle = isDarkMode ? '#1f2937' : '#ffffff';
-      ctx.fillRect(0, 0, width, height);
-      
-      // Görüntü kaynaklarını çıkar
-      // 1. Sayfanın kendisi
-      const pageImage = decryptedImages[currentPage];
-      
-      // 2. Çizimler
-      const drawingsStage = stageRef.current;
-      
-      if (pageImage) {
-        // Sayfa görüntüsünü çiz
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        
-        // Görüntü yükleme işleyicisi
-        img.onload = () => {
-          // İlgili bölgeyi canvas'a aktar
+      // Sayfadan ekran görüntüsü al
+      html2canvas(document.body, captureOpts).then(canvas => {
+        try {
+          console.log('Tam görüntü boyutu:', canvas.width, 'x', canvas.height);
+          console.log('Kırpma bölgesi:', area.x, area.y, area.width, area.height);
+          
+          // Öğe tarafından seçilen bölgeyi kırpma
+          const croppedCanvas = document.createElement('canvas');
+          const ctx = croppedCanvas.getContext('2d');
+          
+          // Yakalanan bölgenin gerçek boyutunu ayarla
+          croppedCanvas.width = area.width;
+          croppedCanvas.height = area.height;
+          
+          // Kırpma işlemi - ana canvas'tan seçilen alanı çıkar
           ctx.drawImage(
-            img,
-            x, y, width, height, // Kaynak alan (kırpma bölgesi)
-            0, 0, width, height  // Hedef alan
+            canvas,                         // Kaynak canvas
+            area.x * captureScale,         // Kaynak X (scale ile çarp)
+            area.y * captureScale,         // Kaynak Y (scale ile çarp)
+            area.width * captureScale,     // Kaynak genişlik (scale ile çarp)
+            area.height * captureScale,    // Kaynak yükseklik (scale ile çarp)
+            0, 0,                           // Hedef pozisyon (0,0)
+            area.width,                    // Hedef genişlik
+            area.height                    // Hedef yükseklik
           );
           
-          if (drawingsStage) {
-            try {
-              // Mevcut çizimleri ekle
-              const drawingLayer = drawingsStage.findOne('Layer');
-              const drawingLayerCanvas = drawingLayer.getCanvas()._canvas;
-              
-              ctx.globalCompositeOperation = 'source-over';
-              ctx.drawImage(
-                drawingLayerCanvas,
-                x, y, width, height, // Kaynak alan
-                0, 0, width, height  // Hedef alan
-              );
-              
-              // PNG olarak görüntü URL'si oluştur
-              const dataURL = canvas.toDataURL('image/png');
-              
-              // Focus alanını güncelle
-              setFocusArea({
-                ...tempArea,
-                dataURL: dataURL,
-                originalWidth: width,
-                originalHeight: height,
-                initialZoom: 1.2 // Başlangıç zoom seviyesi
-              });
-              
-              setIsFocusMode(true);
-              setIsSelectingFocusArea(false);
-            } catch (drawingError) {
-              console.error("Drawing capture error:", drawingError);
-              createFallbackImage();
-            }
-          } else {
-            // Sadece sayfa görüntüsü
-            const dataURL = canvas.toDataURL('image/png');
-              
-            // Focus alanını güncelle
-            setFocusArea({
-              ...tempArea,
-              dataURL: dataURL,
-              originalWidth: width,
-              originalHeight: height,
-              initialZoom: 1.2
-            });
-            
-            setIsFocusMode(true);
-            setIsSelectingFocusArea(false);
-          }
-        };
-        
-        // Hata durumunda yedek görüntü oluştur
-        img.onerror = createFallbackImage;
-        
-        // Görüntü kaynağını ata
-        img.src = pageImage;
-      } else {
-        createFallbackImage();
-      }
-    } catch (error) {
-      console.error("Error capturing focus area:", error);
-      createFallbackImage();
-    }
-    
-    // Hata durumunda kullanılacak yedek görüntü
-    function createFallbackImage() {
-      const fallbackCanvas = document.createElement('canvas');
-      fallbackCanvas.width = tempArea.width;
-      fallbackCanvas.height = tempArea.height;
-      const fallbackCtx = fallbackCanvas.getContext('2d');
-      fallbackCtx.fillStyle = isDarkMode ? '#1f2937' : '#f0f0f0';
-      fallbackCtx.fillRect(0, 0, tempArea.width, tempArea.height);
-      fallbackCtx.font = '14px Arial';
-      fallbackCtx.fillStyle = isDarkMode ? '#ffffff' : '#000000';
-      fallbackCtx.textAlign = 'center';
-      fallbackCtx.fillText('Görüntü alınamadı', tempArea.width/2, tempArea.height/2);
-      
-      // Yedek görüntüyü kullan
-      setFocusArea({
-        ...tempArea,
-        dataURL: fallbackCanvas.toDataURL(),
-        originalWidth: tempArea.width,
-        originalHeight: tempArea.height,
-        initialZoom: 1.2
+          // Kırpılmış görüntüyü URL'e çevir
+          const dataURL = croppedCanvas.toDataURL('image/png');
+          
+          console.log('Kırpılmış görüntü oluşturuldu');
+          
+          // Focus alanını ayarla ve doğru boyutları kullan
+          setFocusArea({
+            ...area, 
+            dataURL, 
+            originalWidth: area.width,
+            originalHeight: area.height,
+            initialZoom: 1.0, // Tam boyutta göster
+            captureTime: Date.now() // Her yakalamayı benzersiz yap
+          });
+          
+          // Modal'i göster
+          setIsFocusMode(true);
+          setIsSelectingFocusArea(false);
+          
+        } catch (cropError) {
+          console.error('Kırpma hatası:', cropError);
+          // Hata durumunda alternatif yöntem dene
+          simpleCaptureAsFallback(area);
+        }
+      }).catch(error => {
+        console.error('HTML2Canvas hatası:', error);
+        simpleCaptureAsFallback(area);
       });
       
-      setIsFocusMode(true);
-      setIsSelectingFocusArea(false);
+    } catch (error) {
+      console.error('Ana yakalama hatası:', error);
+      simpleCaptureAsFallback(area);
+    }
+  };
+      
+      // Basit yakalama yöntemi - son çare olarak kullan
+      const simpleCaptureAsFallback = (area) => {
+      try {
+      console.log('Alternatif yakalama yöntemi kullanılıyor...');
+      // Stage'i veya konva element referansını al
+      const stage = stageRef.current;
+      if (!stage) {
+        console.error('Stage referansı bulunamadı!');
+        return;
+      }
+      
+      // Mevcut yapılandırmayı kaydet
+      const originalSize = stage.size();
+      const originalScale = stage.scale();
+      
+      try {
+      // Görüntüyü yüksek kalitede yakalamak için geçici olarak boyutu ve ölçeği ayarla
+        stage.width(area.width);
+        stage.height(area.height);
+        stage.scale({ x: 1, y: 1 });
+        
+        // Tuvali seçilen alana taşı
+        stage.position({ 
+            x: -area.x,
+          y: -area.y
+          });
+            
+        // Ekran görüntüsü al
+        const dataURL = stage.toDataURL({
+          x: area.x,
+          y: area.y,
+          width: area.width,
+          height: area.height,
+          pixelRatio: 2 // Yüksek kalite için
+        });
+        
+        console.log('Alternatif yakalama başarılı');
+        
+        // Focus alanını ayarla
+        setFocusArea({
+          ...area,
+          dataURL,
+          originalWidth: area.width,
+          originalHeight: area.height,
+          initialZoom: 1.0,
+          captureTime: Date.now() // Her yakalamayı benzersiz yap
+        });
+        
+        // Modu aç
+        setIsFocusMode(true);
+        setIsSelectingFocusArea(false);
+        
+      } finally {
+        // Stage'i orijinal durumuna geri getir
+        stage.size(originalSize);
+        stage.scale(originalScale);
+        stage.batchDraw();
+      }
+    } catch (e) {
+      console.error('Basit yakalama hatası:', e);
+      alert('Görüntü yakalama işlemi başarısız oldu. Lütfen tekrar deneyin.');
     }
   };
   
@@ -408,6 +413,8 @@ const DigitalTeachingTool = () => {
       // Create a copy of the focus area to avoid state issues
       const tempFocusArea = { ...focusArea };
       
+      console.log('Selected area dimensions:', tempFocusArea.width, 'x', tempFocusArea.height, 'at position', tempFocusArea.x, ',', tempFocusArea.y);
+      
       // Only proceed if the area is large enough
       if (tempFocusArea.width >= 20 && tempFocusArea.height >= 20) {
         // Wait a moment to ensure state is stable before capturing
@@ -416,7 +423,6 @@ const DigitalTeachingTool = () => {
         }, 50);
       } else {
         // Show a notification if area is too small
-        // You could implement a toast notification here
         console.log("Selected area is too small. Please select a larger area.");
         setIsSelectingFocusArea(true); // Keep selection mode active
       }

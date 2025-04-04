@@ -3,7 +3,7 @@ import { Stage, Layer, Line } from 'react-konva';
 import './styles.css';
 
 /**
- * Component for displaying and interacting with the focus area image
+ * Sadeleştirilmiş - Component for displaying and interacting with the focus area image
  */
 const FocusImage = ({
   focusArea,
@@ -15,20 +15,59 @@ const FocusImage = ({
   focusZoom,
   tool,
   focusDrawings,
-  focusShapes,
-  tempShape,
   currentFocusLine,
-  renderShape,
   isDarkMode,
   containerSize
 }) => {
+  // Hesapla: görüntü boyutlarını container boyutlarına sığdır
+  const imageStyle = React.useMemo(() => {
+    if (!focusArea) return {};
+    
+    // Görüntü oranları
+    const imageWidth = focusArea.originalWidth;
+    const imageHeight = focusArea.originalHeight;
+    const containerWidth = containerSize.width * 0.33 - 20; // padding için -20px
+    const containerHeight = containerSize.height - 100; // header ve footer 
+    
+    // En-boy oranını koru
+    const imageRatio = imageWidth / imageHeight;
+    
+    // Container sınırlarına göre boyutlandır
+    let width = imageWidth;
+    let height = imageHeight;
+    
+    if (width > containerWidth) {
+      width = containerWidth;
+      height = width / imageRatio;
+    }
+    
+    if (height > containerHeight) {
+      height = containerHeight;
+      width = height * imageRatio;
+    }
+    
+    return {
+      width: '100%',
+      height: '100%',
+      backgroundSize: 'contain', // Görüntüyü sığdır
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    };
+  }, [focusArea, containerSize]);
+  
   return (
     <div 
       className={`focus-image-container focus-image-container--${isDarkMode ? 'dark' : 'light'}`}
       style={{
-        width: `${containerSize.width * 0.25}px`,
+        width: `${containerSize.width * 0.33}px`, // 1/3 of container width
         height: containerSize.height - 80, // Adjust for header height
-        borderRight: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`
+        borderRight: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        position: 'relative',
+        padding: '10px'
       }}
     >
       <div
@@ -36,14 +75,32 @@ const FocusImage = ({
         style={{
           width: '100%',
           height: '100%',
-          backgroundImage: `url(${focusArea.dataURL})`,
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
         }}
       >
+        {/* Görüntü arkaplanı */}
+        <div 
+          style={{
+            width: '100%',
+            height: '100%',
+            backgroundImage: `url(${focusArea.dataURL})`,
+            backgroundSize: 'contain',  // Görüntüyü kırpmadan sığdır
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1
+          }}
+        />
+        
+        {/* Çizim katmanı */}
         <Stage
           width={stageSize.width}
           height={stageSize.height}
@@ -57,8 +114,10 @@ const FocusImage = ({
           className="focus-canvas"
           style={{ 
             position: 'absolute',
-            top: 0,
-            left: 0,
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 10,
             cursor: tool === 'hand' ? 'grab' : (
               tool === 'text' ? 'text' : 'crosshair'
             ),
@@ -88,15 +147,7 @@ const FocusImage = ({
                 />
               ))}
             
-            {/* Show only focus area shapes */}
-            {focusShapes
-              .filter(shape => shape.canvasType !== 'whiteboard')
-              .map(shape => renderShape(shape))}
-            
-            {/* Temporary shape if in focus area */}
-            {tempShape && tempShape.canvasType !== 'whiteboard' && renderShape(tempShape)}
-            
-            {/* Currently drawing line if in focus area */}
+            {/* Güncel çizgi */}
             {currentFocusLine && currentFocusLine.canvasType !== 'whiteboard' && (
               <Line
                 points={currentFocusLine.points}

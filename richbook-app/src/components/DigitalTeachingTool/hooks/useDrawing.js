@@ -171,21 +171,22 @@ const useDrawing = ({
       const pointerPosition = stage.getPointerPosition();
       if (!pointerPosition) return;
       
-      // Calculate dimensions
-      const width = Math.abs(pointerPosition.x - dragStart.x);
-      const height = Math.abs(pointerPosition.y - dragStart.y);
+      // Calculate dimensions with proper bounds checking
+      const x1 = Math.min(dragStart.x, pointerPosition.x);
+      const y1 = Math.min(dragStart.y, pointerPosition.y);
+      const x2 = Math.max(dragStart.x, pointerPosition.x);
+      const y2 = Math.max(dragStart.y, pointerPosition.y);
       
-      // Only update if it's at least 20x20 pixels or set a minimum
-      const minDimension = 20;
-      const finalWidth = Math.max(width, minDimension);
-      const finalHeight = Math.max(height, minDimension);
+      // Calculate width and height
+      const width = Math.max(x2 - x1, 20); // Minimum width of 20px
+      const height = Math.max(y2 - y1, 20); // Minimum height of 20px
       
-      // Update focus area
+      // Update focus area with precise positioning
       setFocusArea({
-        x: Math.min(dragStart.x, pointerPosition.x),
-        y: Math.min(dragStart.y, pointerPosition.y),
-        width: finalWidth,
-        height: finalHeight
+        x: x1,
+        y: y1,
+        width: width,
+        height: height
       });
       return;
     }
@@ -362,18 +363,22 @@ const useDrawing = ({
       
       // Focus alanı seçimi için
       if (isSelectingFocusArea && dragStart) {
-        const width = Math.abs(offsetX - dragStart.x);
-        const height = Math.abs(offsetY - dragStart.y);
+        // Calculate dimensions with proper bounds checking
+        const x1 = Math.min(dragStart.x, offsetX);
+        const y1 = Math.min(dragStart.y, offsetY);
+        const x2 = Math.max(dragStart.x, offsetX);
+        const y2 = Math.max(dragStart.y, offsetY);
         
-        const minDimension = 20;
-        const finalWidth = Math.max(width, minDimension);
-        const finalHeight = Math.max(height, minDimension);
+        // Calculate width and height with minimum size
+        const width = Math.max(x2 - x1, 20); // Minimum width of 20px
+        const height = Math.max(y2 - y1, 20); // Minimum height of 20px
         
+        // Update focus area with precise positioning
         setFocusArea({
-          x: Math.min(dragStart.x, offsetX),
-          y: Math.min(dragStart.y, offsetY),
-          width: finalWidth,
-          height: finalHeight
+          x: x1,
+          y: y1,
+          width: width,
+          height: height
         });
         return;
       }

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Pencil, Highlighter, Eraser, Trash2, ZoomIn, ZoomOut, Save, Square, Circle, Type } from 'lucide-react';
+import { Pencil, Highlighter, Eraser, Trash2, ZoomIn, ZoomOut, Save, ChevronRight } from 'lucide-react';
 import './styles.css';
 
 /**
  * Header component with tool controls for the Focus Area
+ * Sadeleştirilmiş araç seti ile
  */
 const ToolHeader = ({
   tool, 
@@ -26,67 +27,90 @@ const ToolHeader = ({
       onTouchStart={startDraggingFocusPopup}
     >
       <div className="focus-tools">
-        <button
-          className={`focus-tool-button ${tool === 'pen' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={() => selectFocusTool('pen')}
-          title="Pen Tool"
-        >
-          <Pencil size={20} />
-        </button>
+        {/* Sadece ana araçlar */}
+        <div className="tool-button-group">
+          <button
+            className={`focus-tool-button ${tool === 'pen' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => selectFocusTool(e, 'pen')}
+            title="Pen Tool"
+          >
+            <Pencil size={20} />
+          </button>
+          <button 
+            className={`focus-tool-settings-button focus-tool-settings-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFocusColorButtonClick(e, 'pen');
+            }}
+            title="Kalem Ayarları - Sağ Menüde Açılır"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
         
-        <button
-          className={`focus-tool-button ${tool === 'highlighter' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={() => selectFocusTool('highlighter')}
-          title="Highlighter Tool"
-        >
-          <Highlighter size={20} />
-        </button>
+        <div className="tool-button-group">
+          <button
+            className={`focus-tool-button ${tool === 'highlighter' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => selectFocusTool(e, 'highlighter')}
+            title="Highlighter Tool"
+          >
+            <Highlighter size={20} />
+          </button>
+          <button 
+            className={`focus-tool-settings-button focus-tool-settings-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFocusColorButtonClick(e, 'highlighter');
+            }}
+            title="İşaretleyici Ayarları - Sağ Menüde Açılır"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
         
-        <button
-          className={`focus-tool-button ${tool === 'eraser' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={() => selectFocusTool('eraser')}
-          title="Eraser Tool"
-        >
-          <Eraser size={20} />
-        </button>
-        
-        {/* Shape Tools */}
-        <button
-          className={`focus-tool-button ${tool === 'rect' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={() => selectFocusTool('rect')}
-          title="Rectangle Tool"
-        >
-          <Square size={20} />
-        </button>
-        
-        <button
-          className={`focus-tool-button ${tool === 'ellipse' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={() => selectFocusTool('ellipse')}
-          title="Ellipse Tool"
-        >
-          <Circle size={20} />
-        </button>
-        
-        <button
-          className={`focus-tool-button ${tool === 'text' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={() => selectFocusTool('text')}
-          title="Text Tool"
-        >
-          <Type size={20} />
-        </button>
+        <div className="tool-button-group">
+          <button
+            className={`focus-tool-button ${tool === 'eraser' ? 'focus-tool-button--active' : ''} focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => selectFocusTool(e, 'eraser')}
+            title="Eraser Tool"
+          >
+            <Eraser size={20} />
+          </button>
+          <button 
+            className={`focus-tool-settings-button focus-tool-settings-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFocusColorButtonClick(e, 'eraser');
+            }}
+            title="Silgi Ayarları - Sağ Menüde Açılır"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
         
         <button
           className={`focus-tool-button focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={handleClearAll}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleClearAll();
+          }}
           title="Clear All"
         >
           <Trash2 size={20} />
         </button>
         
-        {/* Zoom controls */}
+        {/* Zoom ve Kaydetme butonları */}
         <button
           className={`focus-tool-button focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={handleZoomIn}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleZoomIn();
+          }}
           title="Zoom In"
         >
           <ZoomIn size={20} />
@@ -94,39 +118,36 @@ const ToolHeader = ({
         
         <button
           className={`focus-tool-button focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={handleZoomOut}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleZoomOut();
+          }}
           title="Zoom Out"
         >
           <ZoomOut size={20} />
         </button>
         
-        {/* Save button */}
         <button
           className={`focus-tool-button focus-tool-button--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={handleSaveFocusArea}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSaveFocusArea();
+          }}
           title="Save Image"
         >
           <Save size={20} />
         </button>
-        
-        {/* Enhanced color selector */}
-        <div
-          className={`focus-color-selector focus-color-selector--${isDarkMode ? 'dark' : 'light'}`}
-          onClick={handleFocusColorButtonClick}
-        >
-          <div
-            className="focus-color-swatch"
-            style={{
-              backgroundColor: color,
-            }}
-          />
-          <span style={{ fontSize: '0.9rem' }}>{strokeWidth}px</span>
-        </div>
       </div>
       
       <button
         className={`focus-close-button focus-close-button--${isDarkMode ? 'dark' : 'light'}`}
-        onClick={handleClose}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleClose();
+        }}
       >
         ✕
       </button>

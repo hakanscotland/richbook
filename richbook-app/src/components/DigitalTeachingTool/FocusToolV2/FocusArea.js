@@ -1,11 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Rect, Ellipse, Text, Line } from 'react-konva';
+import { 
+  Pencil, 
+  Highlighter, 
+  Eraser, 
+  Trash2, 
+  ZoomIn, 
+  ZoomOut, 
+  Save, 
+  X as CloseIcon,
+  Move,
+  Settings
+} from 'lucide-react';
 import { saveFocusAreaAsImage } from './utils';
 import { useDragging, useKeyboardShortcuts, useDrawing } from './hooks';
-import ToolHeader from './ToolHeader';
-import ToolOptions from './ToolOptions';
 import FocusImage from './FocusImage';
 import Whiteboard from './Whiteboard';
+import ToolOptions from './ToolOptions';
 import './styles.css';
 
 /**
@@ -29,7 +39,7 @@ const FocusArea = ({
   setOpacity,
   isDarkMode
 }) => {
-  // Initialize state using custom hooks
+  // Initialize state using custom hooks - Sadeleştirilmiş
   const {
     focusDrawings,
     setFocusDrawings,
@@ -39,6 +49,7 @@ const FocusArea = ({
     setIsFocusDrawing,
     focusShapes,
     setFocusShapes,
+    // eslint-disable-next-line no-unused-vars
     tempShape,
     setTempShape,
     selectedShape,
@@ -111,57 +122,115 @@ const FocusArea = ({
   // Initialize container size when focus area changes
   useEffect(() => {
     if (focusArea && focusArea.originalWidth && focusArea.originalHeight) {
-      const maxWidth = window.innerWidth * 0.8;
-      const maxHeight = window.innerHeight * 0.8;
-      
-      // Calculate the size of the popup container
-      const containerWidth = Math.min(maxWidth, Math.max(600, focusArea.originalWidth * 1.5));
-      const containerHeight = Math.min(maxHeight, Math.max(400, focusArea.originalHeight * 1.5));
-      
-      setContainerSize({
-        width: containerWidth,
-        height: containerHeight
-      });
-      
-      // Calculate the whiteboard size (3/4 of the container width)
-      setWhiteboardSize({
-        width: containerWidth * 0.75,
-        height: containerHeight
-      });
+      // Initialize sizing with a short delay to avoid race conditions
+      setTimeout(() => {
+        // Get viewport restrictions
+        const maxWidth = window.innerWidth * 0.9; // 90% of viewport width
+        const maxHeight = window.innerHeight * 0.9; // 90% of viewport height
+        
+        // Original dimensions from the captured area
+        const originalWidth = focusArea.originalWidth;
+        const originalHeight = focusArea.originalHeight;
+        
+        console.log('Original focus dimensions:', originalWidth, 'x', originalHeight);
+        
+        // Minimum dimensions to ensure UI is usable
+        const minWidth = Math.max(600, originalWidth * 1.4);
+        const minHeight = Math.max(400, originalHeight * 1.4);
+        
+        // Calculate aspect ratio to preserve proportions
+        const aspectRatio = originalWidth / originalHeight;
+        
+        // Initial container sizing (at least 40% larger than content)
+        let containerWidth = Math.max(minWidth, originalWidth * 1.4);
+        let containerHeight = Math.max(minHeight, originalHeight * 1.4);
+        
+        // Adjust if container exceeds viewport bounds
+        if (containerWidth > maxWidth) {
+          containerWidth = maxWidth;
+          containerHeight = containerWidth / aspectRatio;
+        }
+        
+        if (containerHeight > maxHeight) {
+          containerHeight = maxHeight;
+          containerWidth = containerHeight * aspectRatio;
+        }
+        
+        // Ensure minimum sizes are respected despite viewport constraints
+        containerWidth = Math.max(600, containerWidth);
+        containerHeight = Math.max(400, containerHeight);
+        
+        console.log('Final container size:', containerWidth, 'x', containerHeight);
+        
+        // Update container size
+        setContainerSize({
+          width: containerWidth,
+          height: containerHeight
+        });
+        
+        // Calculate whiteboard size (2/3 of container width)
+        setWhiteboardSize({
+          width: containerWidth * 0.66,
+          height: containerHeight
+        });
+        
+        // Center the popup
+        setFocusPopupPosition({
+          x: (window.innerWidth - containerWidth) / 2,
+          y: (window.innerHeight - containerHeight) / 2
+        });
+      }, 0);
     }
-  }, [focusArea]);
+  }, [focusArea, setFocusPopupPosition]);
   
   // Initialize focus area on load with proper zoom
   useEffect(() => {
     if (focusArea && focusArea.dataURL) {
-      // Set initial zoom to 1.2 (20% larger)
-      setFocusZoom(1.2);
+      // Set initial zoom to 1.0 (actual size)
+      setFocusZoom(1.0);
+      setIsLoading(true);
       
-      // Load the captured image
+      console.log('Focus area initialization:', {
+        originalWidth: focusArea.originalWidth,
+        originalHeight: focusArea.originalHeight,
+        captureTime: focusArea.captureTime || 'not set'
+      });
+      
+      // Load and measure the captured image
       const img = new Image();
       img.onload = () => {
-        setIsLoading(false);
+        console.log('Image loaded successfully with dimensions:', img.width, 'x', img.height);
         
-        // Save the actual image dimensions
+        // Save actual image dimensions
         setStageSize({
-          width: img.width,
-          height: img.height
+          width: focusArea.originalWidth,  // Captured area width
+          height: focusArea.originalHeight // Captured area height
         });
         
-        // Center the popup in the viewport
+        // Center the popup in the viewport 
         setFocusPopupPosition({
           x: (window.innerWidth - containerSize.width) / 2,
           y: (window.innerHeight - containerSize.height) / 2
         });
-      };
-      
-      img.src = focusArea.dataURL;
-      
-      img.onerror = () => {
-        console.error("Failed to load focus area image");
+        
         setIsLoading(false);
       };
       
+      // Error handling for image loading
+      img.onerror = (e) => {
+        console.error('Failed to load focus area image:', e);
+        // Use dimensions directly from the focus area object
+        setStageSize({
+          width: focusArea.originalWidth,
+          height: focusArea.originalHeight
+        });
+        setIsLoading(false);
+      };
+      
+      // Set the image source to start loading
+      img.src = focusArea.dataURL;
+      
+      // Cleanup on unmount
       return () => {
         img.onload = null;
         img.onerror = null;
@@ -185,55 +254,67 @@ const FocusArea = ({
     };
   }, [showFocusToolOptions]);
   
-  // Tool selection
+  // Tool selection - Sadeleştirilmiş araç seti
   const selectFocusTool = (newTool) => {
-    setTool(newTool);
-    
-    // Set tool properties
-    if (newTool === 'highlighter') {
-      setOpacity(0.4);
-      if (strokeWidth < 5) setStrokeWidth(5);
-    } else if (newTool === 'eraser') {
-      setOpacity(1);
-      if (strokeWidth < 8) setStrokeWidth(8);
-    } else if (newTool === 'pen') {
-      setOpacity(1);
-      if (strokeWidth > 5) setStrokeWidth(3);
+    // Sadece izin verilen araçları kontrol et
+    if (['pen', 'highlighter', 'eraser', 'hand'].includes(newTool)) {
+      setTool(newTool);
+      
+      // Set tool properties
+      if (newTool === 'highlighter') {
+        setOpacity(0.4);
+        if (strokeWidth < 5) setStrokeWidth(5);
+      } else if (newTool === 'eraser') {
+        setOpacity(1);
+        if (strokeWidth < 8) setStrokeWidth(8);
+      } else if (newTool === 'pen') {
+        setOpacity(1);
+        if (strokeWidth > 5) setStrokeWidth(3);
+      }
     }
     
     // Close panel when tool changes
     setShowFocusToolOptions(false);
   };
   
-  // Color button handler
-  const handleFocusColorButtonClick = (e) => {
+  // Popup penceresi içindeki araç butonları için güvenli tıklama işleyicisi
+  const handleToolButtonClick = (e, newTool) => {
+    // Tıklama olayının popup'ta yeniden konumlandırmaya neden olmasını engelle
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Aracı değiştir
+    if (newTool) {
+      selectFocusTool(newTool);
+    }
+  };
+  
+  // Color button handler - for left toolbar
+  const handleFocusColorButtonClick = (e, toolType) => {
     e.preventDefault();
     e.stopPropagation();
-
-    // Set position for the color selection panel
-    const rect = e.currentTarget.getBoundingClientRect();
     
-    // Check if panel would overflow the right edge of the screen
-    const windowWidth = window.innerWidth;
-    const panelWidth = 200; // Estimated panel width
+    // Get button position
+    const buttonRect = e.currentTarget.getBoundingClientRect();
     
-    // If panel would overflow right, position it on the left
-    let xPos = rect.left;
-    if (xPos + panelWidth > windowWidth - 20) {
-      xPos = rect.right - panelWidth;
+    // Set the current tool to the selected one if needed
+    if (toolType && toolType !== tool) {
+      selectFocusTool(toolType);
     }
-
-    // Position the panel below the button
+    
+    // Position the panel to the right of the left toolbar
     setFocusToolOptionsPosition({
-      x: xPos,
-      y: rect.bottom + 10 // Start 10px below the button
+      x: 70, // Width of left toolbar + 10px gap
+      y: buttonRect.top - focusPopupRef.current.getBoundingClientRect().top
     });
     
-    // Toggle panel state
+    // Toggle panel visibility
     setShowFocusToolOptions(!showFocusToolOptions);
   };
   
-  // Drawing handlers for both canvas areas
+  // Drawing handlers for both canvas areas - Sadece basit araçlar için
   const handleCanvasMouseDown = (e, canvasType) => {
     if (tool === 'hand' || !(canvasType === 'whiteboard' ? whiteboardCanvasRef.current : focusCanvasRef.current)) return;
     
@@ -249,92 +330,32 @@ const FocusArea = ({
     const x = pointerPosition.x / (canvasType === 'whiteboard' ? 1 : focusZoom);
     const y = pointerPosition.y / (canvasType === 'whiteboard' ? 1 : focusZoom);
     
-    // Special handling for shape tools
-    if (['rect', 'ellipse', 'line', 'text'].includes(tool)) {
-      // Start shape drawing
-      const shapeId = Date.now().toString();
-      if (tool === 'rect') {
-        setTempShape({
-          id: shapeId,
-          type: 'rect',
-          x: x,
-          y: y,
-          width: 0,
-          height: 0,
-          color,
-          strokeWidth,
-          opacity,
-          canvasType
-        });
-      } else if (tool === 'ellipse') {
-        setTempShape({
-          id: shapeId,
-          type: 'ellipse',
-          x: x,
-          y: y,
-          radiusX: 0,
-          radiusY: 0,
-          color,
-          strokeWidth,
-          opacity,
-          canvasType
-        });
-      } else if (tool === 'line') {
-        setTempShape({
-          id: shapeId,
-          type: 'line',
-          points: [x, y, x, y],
-          color,
-          strokeWidth,
-          opacity,
-          canvasType
-        });
-      } else if (tool === 'text') {
-        // Show prompt for text
-        const textToAdd = window.prompt('Enter text:', '');
-        if (textToAdd) {
-          const newText = {
-            id: shapeId,
-            type: 'text',
-            x: x,
-            y: y,
-            text: textToAdd,
-            fontSize: 16,
-            color,
-            opacity,
-            canvasType
-          };
-          setFocusShapes([...focusShapes, newText]);
-        }
-      }
-    } else {
-      // For normal drawing tools
-      setIsFocusDrawing(true);
-      
-      // Create new line based on tool properties
-      let newLine = {
-        tool,
-        points: [x, y],
-        strokeWidth,
-        canvasType
-      };
-      
-      // Set tool properties
-      if (tool === 'pen') {
-        newLine.color = color;
-        newLine.opacity = opacity;
-      } else if (tool === 'highlighter') {
-        newLine.color = color;
-        newLine.opacity = 0.4;
-        newLine.strokeWidth = strokeWidth * 2;
-      } else if (tool === 'eraser') {
-        newLine.color = '#ffffff';
-        newLine.opacity = 1;
-        newLine.strokeWidth = strokeWidth * 3;
-      }
-      
-      setCurrentFocusLine(newLine);
+    // For normal drawing tools
+    setIsFocusDrawing(true);
+    
+    // Create new line based on tool properties
+    let newLine = {
+      tool,
+      points: [x, y],
+      strokeWidth,
+      canvasType
+    };
+    
+    // Set tool properties
+    if (tool === 'pen') {
+      newLine.color = color;
+      newLine.opacity = opacity;
+    } else if (tool === 'highlighter') {
+      newLine.color = color;
+      newLine.opacity = 0.4;
+      newLine.strokeWidth = strokeWidth * 2;
+    } else if (tool === 'eraser') {
+      newLine.color = '#ffffff';
+      newLine.opacity = 1;
+      newLine.strokeWidth = strokeWidth * 3;
     }
+    
+    setCurrentFocusLine(newLine);
   };
 
   const handleCanvasMouseMove = (e, canvasType) => {
@@ -352,36 +373,8 @@ const FocusArea = ({
     const x = pointerPosition.x / (canvasType === 'whiteboard' ? 1 : focusZoom);
     const y = pointerPosition.y / (canvasType === 'whiteboard' ? 1 : focusZoom);
     
-    // For shape drawing
-    if (tempShape && tempShape.canvasType === canvasType) {
-      if (tempShape.type === 'rect') {
-        // Update rectangle
-        const width = x - tempShape.x;
-        const height = y - tempShape.y;
-        setTempShape({
-          ...tempShape,
-          width: width,
-          height: height
-        });
-      } else if (tempShape.type === 'ellipse') {
-        // Update ellipse
-        const radiusX = Math.abs(x - tempShape.x);
-        const radiusY = Math.abs(y - tempShape.y);
-        setTempShape({
-          ...tempShape,
-          radiusX: radiusX,
-          radiusY: radiusY
-        });
-      } else if (tempShape.type === 'line') {
-        // Update line
-        const newPoints = [tempShape.points[0], tempShape.points[1], x, y];
-        setTempShape({
-          ...tempShape,
-          points: newPoints
-        });
-      }
-    } else if (isFocusDrawing && currentFocusLine && currentFocusLine.canvasType === canvasType) {
-      // For normal drawing tools
+    // Çizim aracı aktifse ve geçerli çizgi varsa devam et
+    if (isFocusDrawing && currentFocusLine && currentFocusLine.canvasType === canvasType) {
       setCurrentFocusLine({
         ...currentFocusLine,
         points: [...currentFocusLine.points, x, y]
@@ -393,95 +386,15 @@ const FocusArea = ({
     e.evt.preventDefault();
     e.evt.stopPropagation();
     
-    // Complete shape drawing
-    if (tempShape && tempShape.canvasType === canvasType) {
-      // Check if it's a valid shape (not zero dimensions)
-      let isValidShape = false;
-      
-      if (tempShape.type === 'rect') {
-        isValidShape = Math.abs(tempShape.width) > 5 && Math.abs(tempShape.height) > 5;
-      } else if (tempShape.type === 'ellipse') {
-        isValidShape = tempShape.radiusX > 5 && tempShape.radiusY > 5;
-      } else if (tempShape.type === 'line') {
-        const startX = tempShape.points[0];
-        const startY = tempShape.points[1];
-        const endX = tempShape.points[2];
-        const endY = tempShape.points[3];
-        const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-        isValidShape = distance > 5; // 5 pixels minimum length
-      }
-      
-      if (isValidShape) {
-        setFocusShapes([...focusShapes, tempShape]);
-      }
-      
-      setTempShape(null);
-    } else if (isFocusDrawing && currentFocusLine && currentFocusLine.canvasType === canvasType) {
-      // For normal drawing tools
+    // Çizimi tamamla
+    if (isFocusDrawing && currentFocusLine && currentFocusLine.canvasType === canvasType) {
       setIsFocusDrawing(false);
       setFocusDrawings([...focusDrawings, currentFocusLine]);
       setCurrentFocusLine(null);
     }
   };
 
-  // Shape rendering function
-  const renderShape = (shape) => {
-    const common = {
-      stroke: shape.color || color,
-      strokeWidth: shape.strokeWidth || strokeWidth,
-      opacity: shape.opacity || opacity,
-      fill: shape.fill || 'transparent',
-      draggable: tool === 'hand',
-      onClick: () => setSelectedShape(shape.id),
-    };
-    
-    if (shape.type === 'rect') {
-      return (
-        <Rect
-          key={shape.id}
-          x={shape.x}
-          y={shape.y}
-          width={shape.width}
-          height={shape.height}
-          {...common}
-        />
-      );
-    } else if (shape.type === 'ellipse') {
-      return (
-        <Ellipse
-          key={shape.id}
-          x={shape.x}
-          y={shape.y}
-          radiusX={shape.radiusX}
-          radiusY={shape.radiusY}
-          {...common}
-        />
-      );
-    } else if (shape.type === 'line') {
-      return (
-        <Line
-          key={shape.id}
-          points={shape.points}
-          {...common}
-        />
-      );
-    } else if (shape.type === 'text') {
-      return (
-        <Text
-          key={shape.id}
-          x={shape.x}
-          y={shape.y}
-          text={shape.text}
-          fontSize={shape.fontSize || 16}
-          fontFamily="Arial"
-          fill={shape.color || color}
-          {...common}
-        />
-      );
-    }
-    
-    return null;
-  };
+  // Shape rendering function removed since it's not used
   
   // Handler to save the focus area as an image
   const handleSaveFocusArea = () => {
@@ -491,8 +404,7 @@ const FocusArea = ({
       containerSize,
       whiteboardSize,
       focusZoom,
-      focusDrawings,
-      focusShapes
+      focusDrawings
     );
   };
   
@@ -532,25 +444,137 @@ const FocusArea = ({
           transform: !focusPopupPosition.x ? 'translate(-50%, -50%)' : 'none',
           width: `${containerSize.width}px`,
           height: `${containerSize.height}px`,
+          display: 'flex',
+          flexDirection: 'row'
         }}
       >
-        {/* Tool Header */}
-        <ToolHeader
-          tool={tool}
-          selectFocusTool={selectFocusTool}
-          color={color}
-          strokeWidth={strokeWidth}
-          handleFocusColorButtonClick={handleFocusColorButtonClick}
-          handleZoomIn={handleZoomIn}
-          handleZoomOut={handleZoomOut}
-          handleSaveFocusArea={handleSaveFocusArea}
-          handleClearAll={handleClearAll}
-          handleClose={handleClose}
-          isDarkMode={isDarkMode}
-          startDraggingFocusPopup={startDraggingFocusPopup}
-        />
+        {/* Hareket ettirilebilir başlık çubuğu */}
+        <div 
+          className={`focus-drag-handle focus-drag-handle--${isDarkMode ? 'dark' : 'light'}`}
+          onMouseDown={startDraggingFocusPopup}
+          onTouchStart={startDraggingFocusPopup}
+        >
+          <div className="focus-drag-handle-icon">
+            <Move size={18} />
+          </div>
+          <div className="focus-drag-handle-text">
+            Taşımak için sürükle
+          </div>
+          <button
+            className={`focus-close-button focus-close-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleClose();
+            }}
+            title="Kapat"
+          >
+            <CloseIcon size={18} />
+          </button>
+        </div>
         
-        <div className="focus-content">
+        {/* Sol taraftaki araç çubuğu */}
+        <div className={`focus-left-toolbar focus-left-toolbar--${isDarkMode ? 'dark' : 'light'}`}>
+          {/* Kalem aracı */}
+          <button
+            className={`focus-left-tool-button ${tool === 'pen' ? 'focus-left-tool-button--active' : ''} focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => handleToolButtonClick(e, 'pen')}
+            title="Kalem Aracı"
+          >
+            <Pencil size={20} />
+          </button>
+          
+          {/* İşaretleyici aracı */}
+          <button
+            className={`focus-left-tool-button ${tool === 'highlighter' ? 'focus-left-tool-button--active' : ''} focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => handleToolButtonClick(e, 'highlighter')}
+            title="İşaretleyici Aracı"
+          >
+            <Highlighter size={20} />
+          </button>
+          
+          {/* Silgi aracı */}
+          <button
+            className={`focus-left-tool-button ${tool === 'eraser' ? 'focus-left-tool-button--active' : ''} focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => handleToolButtonClick(e, 'eraser')}
+            title="Silgi Aracı"
+          >
+            <Eraser size={20} />
+          </button>
+          
+          <div className="focus-left-tool-separator"></div>
+          
+          {/* Yakınlaştır */}
+          <button
+            className={`focus-left-tool-button focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleZoomIn();
+            }}
+            title="Yakınlaştır"
+          >
+            <ZoomIn size={20} />
+          </button>
+          
+          {/* Uzaklaştır */}
+          <button
+            className={`focus-left-tool-button focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleZoomOut();
+            }}
+            title="Uzaklaştır"
+          >
+            <ZoomOut size={20} />
+          </button>
+          
+          <div className="focus-left-tool-separator"></div>
+          
+          {/* Temizle */}
+          <button
+            className={`focus-left-tool-button focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleClearAll();
+            }}
+            title="Tümünü Temizle"
+          >
+            <Trash2 size={20} />
+          </button>
+          
+          {/* Kaydet */}
+          <button
+            className={`focus-left-tool-button focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSaveFocusArea();
+            }}
+            title="Görüntüyü Kaydet"
+          >
+            <Save size={20} />
+          </button>
+          
+          <div className="focus-left-tool-separator"></div>
+          
+          {/* Ayarlar */}
+          <button
+            className={`focus-left-tool-button focus-left-tool-button--${isDarkMode ? 'dark' : 'light'}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFocusColorButtonClick(e, tool);
+            }}
+            title="Araç Ayarları"
+          >
+            <Settings size={20} />
+          </button>
+        </div>
+        
+        <div className="focus-main-content" data-testid="focus-main-content">
           {/* Loading indicator */}
           {isLoading && (
             <div className={`loading-indicator loading-indicator--${isDarkMode ? 'dark' : 'light'}`}>
@@ -571,10 +595,7 @@ const FocusArea = ({
               focusZoom={focusZoom}
               tool={tool}
               focusDrawings={focusDrawings}
-              focusShapes={focusShapes}
-              tempShape={tempShape}
               currentFocusLine={currentFocusLine}
-              renderShape={renderShape}
               isDarkMode={isDarkMode}
               containerSize={containerSize}
             />
@@ -588,36 +609,38 @@ const FocusArea = ({
               handleCanvasMouseUp={handleCanvasMouseUp}
               tool={tool}
               focusDrawings={focusDrawings}
-              focusShapes={focusShapes}
-              tempShape={tempShape}
               currentFocusLine={currentFocusLine}
-              renderShape={renderShape}
               containerSize={containerSize}
             />
           </div>
         </div>
         
         {/* Tool Options Panel */}
-        <div style={{
-          position: 'absolute',
-          top: focusToolOptionsPosition.y,
-          left: focusToolOptionsPosition.x,
-        }}>
-          <ToolOptions
-            showFocusToolOptions={showFocusToolOptions}
-            tool={tool}
-            color={color}
-            setColor={setColor}
-            strokeWidth={strokeWidth}
-            setStrokeWidth={setStrokeWidth}
-            setShowFocusToolOptions={setShowFocusToolOptions}
-            isDarkMode={isDarkMode}
-          />
-        </div>
+        {showFocusToolOptions && (
+          <div 
+            className="tool-options-wrapper" 
+            style={{
+              position: 'absolute',
+              top: `${focusToolOptionsPosition.y}px`,
+              left: `${focusToolOptionsPosition.x}px`
+            }}
+          >
+            <ToolOptions
+              showFocusToolOptions={showFocusToolOptions}
+              tool={tool}
+              color={color}
+              setColor={setColor}
+              strokeWidth={strokeWidth}
+              setStrokeWidth={setStrokeWidth}
+              setShowFocusToolOptions={setShowFocusToolOptions}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        )}
         
         {/* Keyboard shortcuts info */}
         <div className={`focus-shortcuts-info focus-shortcuts-info--${isDarkMode ? 'dark' : 'light'}`}>
-          ESC: Close • +/-: Zoom • Delete: Remove selected
+          ESC: Kapat • +/-: Yakınlaştır • Delete: Seçili öğeyi sil
         </div>
         
         {/* Zoom indicator */}

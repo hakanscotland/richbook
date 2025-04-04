@@ -139,7 +139,7 @@ export function useKeyboardShortcuts(
 }
 
 /**
- * Hook to handle canvas drawing functionality
+ * Hook to handle canvas drawing functionality - Sadeleştirilmiş 
  * @returns {Object} - Drawing related state and handlers
  */
 export function useDrawing() {

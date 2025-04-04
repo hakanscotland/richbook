@@ -1,12 +1,12 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, PenLine, Highlighter, Eraser } from 'lucide-react';
 import './styles.css';
 
 /**
  * Panel for tool options like color and thickness
+ * Sağ panel tasarımı (araçların sağında açılır panel)
  */
 const ToolOptions = ({
-  showFocusToolOptions, 
   tool, 
   color, 
   setColor, 
@@ -15,15 +15,14 @@ const ToolOptions = ({
   setShowFocusToolOptions, 
   isDarkMode
 }) => {
-  if (!showFocusToolOptions) return null;
   
   return (
     <div className={`tool-options-panel tool-options-panel--${isDarkMode ? 'dark' : 'light'}`}>
       <div className={`tool-options-header tool-options-header--${isDarkMode ? 'dark' : 'light'}`}>
         <div className="tool-options-title">
-          {tool === 'pen' ? 'Pen Settings' : 
-           tool === 'highlighter' ? 'Highlighter Settings' : 
-           'Eraser Settings'}
+        {tool === 'pen' ? <><PenLine size={16} style={{marginRight: '5px'}} /> Pen Settings</> : 
+        tool === 'highlighter' ? <><Highlighter size={16} style={{marginRight: '5px'}} /> Highlighter Settings</> : 
+        <><Eraser size={16} style={{marginRight: '5px'}} /> Eraser Settings</>}
         </div>
         <X 
           size={16} 

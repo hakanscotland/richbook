@@ -3,7 +3,7 @@ import { Stage, Layer, Line } from 'react-konva';
 import './styles.css';
 
 /**
- * Component for the whiteboard drawing area
+ * Sadeleştirilmiş - Component for the whiteboard drawing area
  */
 const Whiteboard = ({
   whiteboardCanvasRef,
@@ -13,17 +13,14 @@ const Whiteboard = ({
   handleCanvasMouseUp,
   tool,
   focusDrawings,
-  focusShapes,
-  tempShape,
   currentFocusLine,
-  renderShape,
   containerSize
 }) => {
   return (
     <div 
       className="whiteboard-container"
       style={{
-        width: `${containerSize.width * 0.75}px`,
+        width: `${containerSize.width * 0.66}px`, // Match the 2/3 container width
         height: containerSize.height - 80, // Adjust for header height
         backgroundColor: '#ffffff',
         position: 'relative'
@@ -44,13 +41,11 @@ const Whiteboard = ({
           position: 'absolute',
           top: 0,
           left: 0,
-          cursor: tool === 'hand' ? 'grab' : (
-            tool === 'text' ? 'text' : 'crosshair'
-          ),
+          cursor: tool === 'hand' ? 'grab' : 'crosshair',
         }}
       >
         <Layer>
-          {/* Show only whiteboard drawings */}
+          {/* Çizim satırları */}
           {focusDrawings
             .filter(line => line.canvasType === 'whiteboard')
             .map((line, i) => (
@@ -71,15 +66,7 @@ const Whiteboard = ({
               />
             ))}
           
-          {/* Show only whiteboard shapes */}
-          {focusShapes
-            .filter(shape => shape.canvasType === 'whiteboard')
-            .map(shape => renderShape(shape))}
-          
-          {/* Temporary shape if in whiteboard */}
-          {tempShape && tempShape.canvasType === 'whiteboard' && renderShape(tempShape)}
-          
-          {/* Currently drawing line if in whiteboard */}
+          {/* Güncel çizgi */}
           {currentFocusLine && currentFocusLine.canvasType === 'whiteboard' && (
             <Line
               points={currentFocusLine.points}

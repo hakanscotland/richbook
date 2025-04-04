@@ -1,5 +1,5 @@
 /**
- * Utility functions for the Focus tool
+ * Utility functions for the Focus tool - Sadeleştirilmiş
  */
 
 /**
@@ -92,7 +92,6 @@ export const drawShapeOnCanvas = (ctx, shape, offsetX = 0, offsetY = 0, scale = 
  * @param {Object} whiteboardSize - The dimensions of the whiteboard
  * @param {number} focusZoom - The zoom level of the focus area
  * @param {Array} focusDrawings - The drawings on the focus area
- * @param {Array} focusShapes - The shapes on the focus area
  */
 export const saveFocusAreaAsImage = (
   focusArea, 
@@ -100,8 +99,7 @@ export const saveFocusAreaAsImage = (
   containerSize, 
   whiteboardSize, 
   focusZoom, 
-  focusDrawings, 
-  focusShapes
+  focusDrawings
 ) => {
   try {
     // Create a combined canvas with the image and drawings
@@ -145,18 +143,7 @@ export const saveFocusAreaAsImage = (
         });
       }
       
-      // Draw shapes
-      if (focusShapes.length > 0) {
-        focusShapes.forEach(shape => {
-          if (shape.canvasType === 'whiteboard') {
-            // Draw on whiteboard area
-            drawShapeOnCanvas(ctx, shape, containerSize.width - whiteboardSize.width, 0);
-          } else {
-            // Draw on focus area
-            drawShapeOnCanvas(ctx, shape, 0, 0, focusZoom);
-          }
-        });
-      }
+      // Shapes drawing code removed
       
       // Create download link
       const link = document.createElement('a');
