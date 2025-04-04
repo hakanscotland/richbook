@@ -9,7 +9,7 @@
   z-index: 950;
   /* !important ekleyerek mutlaka yakalanmasını sağlayacak */
   pointer-events: auto !important;
-  width: 120px !important; /* Actual width that will be applied */
+  width: 120px !important; /* Base width for desktop */
   max-width: none !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   user-select: none;
@@ -314,23 +314,86 @@
   z-index: 1000;
 }
 
-/* Responsive toolbar */
-@media (max-height: 700px) {
-  .toolbar {
-    padding: 4px;
-    gap: 4px;
-  }
-  
-  .toolbar-button {
-    padding: 4px;
-    height: 28px;
-    min-width: 28px;
-  }
-  
-  .toolbar-clock {
-    font-size: 0.75rem;
-  }
+/* Responsive ayarlar - Touchscreen cihazlar için */
+.touch-device .toolbar {
+  width: 150px !important;
 }
+
+.touch-device .toolbar-button {
+  min-width: 54px !important;
+  width: 54px !important;
+  height: 54px;
+  padding: 3px !important;
+}
+
+.touch-device .toolbar-clock {
+  width: 90%;
+  font-size: 1.25rem;
+  padding: 10px 0;
+}
+
+.touch-device .toolbar-button-pair {
+  width: 90%;
+  grid-gap: 12px;
+}
+
+.touch-device .toolbar-navigation {
+  width: 90%;
+}
+
+.touch-device .toolbar-logo img {
+  width: 60px !important;
+}
+
+.touch-device .toolbar-logo-text {
+  font-size: 0.9rem;
+}
+
+/* iPad özel stiller */
+.ipad-device .toolbar {
+  width: 160px !important; /* iPad için daha da geniş */
+  border-width: 4px !important; /* Daha belirgin kenar çizgisi */
+}
+
+.ipad-device .toolbar-button {
+  min-width: 60px !important;
+  width: 60px !important;
+  height: 60px;
+  padding: 5px !important;
+  border-width: 2px !important; /* Daha belirgin buton çerçevesi */
+}
+
+.ipad-device .toolbar-clock {
+  width: 90%;
+  font-size: 1.3rem;
+  padding: 12px 0;
+  border-radius: 12px;
+}
+
+.ipad-device .toolbar-button-pair {
+  width: 90%;
+  grid-gap: 15px;
+  margin-bottom: 5px;
+}
+
+.ipad-device .toolbar-navigation {
+  width: 90%;
+}
+
+.ipad-device .page-nav-button {
+  width: 36px;
+  height: 36px;
+}
+
+.ipad-device .toolbar-logo img {
+  width: 65px !important;
+}
+
+.ipad-device .toolbar-logo-text {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 
 /* Collapsed durumu */
 .toolbar--collapsed {

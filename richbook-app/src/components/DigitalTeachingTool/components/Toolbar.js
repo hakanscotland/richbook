@@ -70,7 +70,6 @@ const Toolbar = ({
           // Collapse durumunda toolbar yüksekliğini ayarla (sadece başlık göster)
           height: isToolbarCollapsed ? 'auto' : undefined,
           transition: 'height 0.3s ease, opacity 0.2s ease',
-          width: '120px'
         }}
       >
       <div 

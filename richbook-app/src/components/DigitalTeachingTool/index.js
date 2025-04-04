@@ -113,6 +113,16 @@ const DigitalTeachingTool = () => {
         document.body.classList.add('touch-device');
       }
       
+      // iPad tespiti (User Agent kontrolü)
+      const isIPad = /iPad/.test(navigator.userAgent) || 
+                    (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
+      
+      if (isIPad) {
+        document.documentElement.classList.add('ipad-device');
+        document.body.classList.add('ipad-device');
+        console.log('iPad detected, applying specific styles');
+      }
+      
       return hasTouch;
     };
     
