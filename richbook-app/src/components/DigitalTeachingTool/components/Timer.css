@@ -1,0 +1,107 @@
+/* Timer.css */
+.timer-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  z-index: 800;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.timer-container--light {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+.timer-container--dark {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+.timer-button {
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.timer-button-primary {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 16px;
+}
+
+.timer-button-primary:hover {
+  background-color: #2563eb;
+}
+
+.timer-button-secondary {
+  background-color: transparent;
+  padding: 8px 16px;
+}
+
+.timer-button-secondary--light {
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.timer-button-secondary--dark {
+  color: #d1d5db;
+  border: 1px solid #4b5563;
+}
+
+.timer-button-secondary:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.timer-display {
+  font-size: 64px;
+  font-weight: bold;
+  margin: 16px 0;
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+.timer-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.timer-input--light {
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+.timer-input--dark {
+  border: 1px solid #4b5563;
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+/* Pulsating animation for countdown */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.timer-alert {
+  animation: pulse 1s infinite;
+}

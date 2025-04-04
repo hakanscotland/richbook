@@ -215,107 +215,505 @@
     outline: none;
   }
   
-  /* Araç Seçenekleri Paneli */
+  /* Tool Options Panel Styles - Yenilenmiş Tasarım */
+.tool-options-panel {
+  position: absolute;
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  z-index: 1100;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  width: 220px;
+  transition: all 0.2s ease;
+}
+
+.tool-options-panel.touch-ui {
+  padding: 1.25rem;
+  border-radius: 1rem;
+}
+
+.tool-options-panel--dark {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+.tool-options-panel--light {
+  background-color: white;
+  color: #1f2937;
+}
+
+.tool-options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.tool-options-header--light {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tool-options-header--dark {
+  border-bottom: 1px solid #374151;
+}
+
+.tool-options-title {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.back-button--light {
+  color: #1f2937;
+}
+
+.back-button--dark {
+  color: #f9fafb;
+}
+
+.back-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.back-button--dark:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Color Section */
+.color-section {
+  margin-bottom: 1.25rem;
+}
+
+.color-section-title {
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  justify-items: center;
+}
+
+.color-swatch {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.color-swatch--selected {
+  border: 3px solid #3b82f6;
+  transform: scale(1.1);
+}
+
+/* Thickness Section */
+.thickness-section {
+  margin-bottom: 1.25rem;
+}
+
+.thickness-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.thickness-title {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.thickness-detail-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.thickness-detail-button--light {
+  color: #1f2937;
+}
+
+.thickness-detail-button--dark {
+  color: #f9fafb;
+}
+
+.thickness-detail-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.thickness-detail-button--dark:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.thickness-preview {
+  width: 100%;
+  height: 20px;
+  margin-bottom: 0.75rem;
+  border-radius: 10px;
+}
+
+.thickness-slider {
+  width: 100%;
+  margin-bottom: 0.75rem;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.thickness-slider--light {
+  background: #e5e7eb;
+}
+
+.thickness-slider--dark {
+  background: #4b5563;
+}
+
+.thickness-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+}
+
+.thickness-presets {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.thickness-preset {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  flex: 1;
+  border: 1px solid #e5e7eb;
+}
+
+.tool-options-panel--dark .thickness-preset {
+  border-color: #4b5563;
+}
+
+.thickness-preset--selected {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #2563eb;
+}
+
+/* Opacity Section */
+.opacity-section {
+  margin-bottom: 1rem;
+}
+
+.opacity-title {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.opacity-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.opacity-slider--light {
+  background: #e5e7eb;
+}
+
+.opacity-slider--dark {
+  background: #4b5563;
+}
+
+.opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+}
+
+/* Custom Button Styles */
+.tool-options-button {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin-top: 0.5rem;
+}
+
+.tool-options-button--light {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.tool-options-button--dark {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+.tool-options-button:hover {
+  background-color: #e5e7eb;
+}
+
+.tool-options-button--dark:hover {
+  background-color: #4b5563;
+}
+
+/* Thickness Detail Page Styles */
+.thickness-detail-section {
+  padding: 0.5rem 0;
+}
+
+.thickness-preview-large {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.thickness-value-display {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.thickness-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.thickness-preset-large {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+}
+
+.tool-options-panel--dark .thickness-preset-large {
+  border-color: #4b5563;
+}
+
+.thickness-preset-large--selected {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #2563eb;
+}
+
+.preset-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+
+.preset-button {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  background-color: transparent;
+}
+
+.preset-button--dark {
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.preset-button--light {
+  color: #1f2937;
+}
+
+.preset-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.preset-button--dark:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.apply-button {
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  background-color: #3b82f6;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.apply-button:hover {
+  background-color: #2563eb;
+}
+
+/* Custom Color Styles */
+.custom-color-section {
+  padding: 0.5rem 0;
+}
+
+.color-preview {
+  width: 100%;
+  height: 60px;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.tool-options-panel--dark .color-preview {
+  border-color: #4b5563;
+}
+
+.color-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.color-input {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.color-value {
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: monospace;
+}
+
+.common-colors {
+  margin-bottom: 1.25rem;
+}
+
+.common-colors-title {
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.common-colors-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.common-color-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 2px solid #d1d5db;
+  cursor: pointer;
+}
+
+.common-color-swatch--selected {
+  border: 3px solid #3b82f6;
+}
+
+.tool-options-panel--dark .common-color-swatch {
+  border-color: #4b5563;
+}
+
+/* iPad Touch Optimizations */
+@media (pointer: coarse) {
   .tool-options-panel {
-    position: absolute;
-    background-color: white;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    z-index: 1100;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    width: 220px;
-  }
-  
-  .tool-options-panel--dark {
-    background-color: #1f2937;
-    color: #f9fafb;
-  }
-  
-  .tool-options-panel--light {
-    background-color: white;
-    color: #1f2937;
-  }
-  
-  .tool-options-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-  }
-  
-  .tool-options-header--light {
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .tool-options-header--dark {
-    border-bottom: 1px solid #374151;
-  }
-  
-  .tool-options-title {
-    font-weight: bold;
-  }
-  
-  .color-section {
-    margin-bottom: 1rem;
-  }
-  
-  .color-section-title {
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-  }
-  
-  .color-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.5rem;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
   }
   
   .color-swatch {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    border: 1px solid #d1d5db;
-    cursor: pointer;
+    width: 36px !important;
+    height: 36px !important;
   }
   
-  .color-swatch--selected {
-    border: 2px solid #3b82f6;
+  .thickness-preset {
+    padding: 8px 12px;
+    font-size: 1rem;
   }
   
-  .thickness-section {
-    margin-bottom: 0.5rem;
+  .thickness-preset-large {
+    padding: 10px 12px;
+    font-size: 1.1rem;
   }
   
-  .thickness-title {
-    margin-bottom: 0.5rem;
-    font-weight: 500;
+  .preset-button {
+    padding: 12px 16px;
+    font-size: 1rem;
   }
   
-  .thickness-options {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
+  .apply-button {
+    padding: 12px 20px;
+    font-size: 1.1rem;
   }
   
-  .thickness-swatch {
-    border-radius: 50%;
-    cursor: pointer;
+  .thickness-slider,
+  .opacity-slider {
+    height: 8px;
   }
   
-  .thickness-swatch--selected {
-    border: 2px solid #3b82f6;
+  .thickness-slider::-webkit-slider-thumb,
+  .opacity-slider::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
   }
-  
-  .thickness-slider {
-    width: 100%;
-  }
-  
-  .thickness-value {
-    text-align: center;
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-  }
+}
   
   /* Küçük Resim (Thumbnail) Kenar Çubuğu */
   .thumbnails-sidebar {

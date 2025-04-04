@@ -4,7 +4,7 @@
 // Import doğrudan html2canvas kütüphanesini dahil et, eğer bu kütüphane yüklü değilse
 // npm install html2canvas ile yükleyin
 import React, { useState, useEffect, useRef } from 'react';
-import Toolbar from './Toolbar';
+import { Toolbar, Timer } from './components';
 import PageRenderer from './PageRenderer';
 import DrawingCanvas from './DrawingCanvas';
 import FocusArea from './FocusToolV2'; // Yeni FocusToolV2'yi kullanıyoruz
@@ -29,6 +29,10 @@ const DigitalTeachingTool = () => {
   });
   const [time, setTime] = useState(new Date())
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+  
+  // Timer durumu
+  const [showTimer, setShowTimer] = useState(false);
+  const [timerMinutes, setTimerMinutes] = useState(5);
 
   // Araç paneli durumu
   const [toolbarPosition, setToolbarPosition] = useState({ x: 20, y: 20 });
@@ -666,6 +670,9 @@ const DigitalTeachingTool = () => {
         isTouchDevice={isTouchDevice}
         isToolbarCollapsed={isToolbarCollapsed}
         setToolbarCollapsed={setIsToolbarCollapsed}
+        showTimer={showTimer}
+        setShowTimer={setShowTimer}
+        setTimerMinutes={setTimerMinutes}
       />
       
       {/* Araç seçenekleri panel */}
@@ -702,6 +709,15 @@ const DigitalTeachingTool = () => {
         <Curtain 
           isDarkMode={isDarkMode}
           onClose={() => setShowCurtain(false)}
+        />
+      )}
+      
+      {/* Timer özelliği */}
+      {showTimer && (
+        <Timer 
+          isDarkMode={isDarkMode}
+          initialMinutes={timerMinutes}
+          onClose={() => setShowTimer(false)}
         />
       )}
       
