@@ -61,9 +61,21 @@ const Toolbar = ({
     setShowTimer(true);
   };
   
+  useEffect(() => {
+    // iPad ve dokunmatik cihazlarda sayfa navigasyon işlevini debug için global değişkene al
+    if (isTouchDevice) {
+      window.toolbarNav = {
+        prevPage,
+        nextPage,
+        goToPage
+      };
+      console.log('Toolbar navigasyon fonksiyonları window.toolbarNav üzerinden erişilebilir');
+    }
+  }, [isTouchDevice, prevPage, nextPage, goToPage]);
+
   return (
     <>
-      <div className={`toolbar toolbar--${isDarkMode ? 'dark' : 'light'} ${isToolbarCollapsed ? 'toolbar--collapsed' : ''}`} 
+      <div className={`toolbar toolbar--${isDarkMode ? 'dark' : 'light'} ${isToolbarCollapsed ? 'toolbar--collapsed' : ''} ${isTouchDevice ? 'touch-toolbar' : ''}`} 
         style={{
           top: `${toolbarPosition.y}px`, 
           left: `${toolbarPosition.x}px`,
@@ -241,19 +253,21 @@ const Toolbar = ({
             
             <div className="page-nav-buttons">
               <button 
-                className={`page-nav-button tooltip page-nav-button--${isDarkMode ? 'dark' : 'light'}`}
-                onClick={prevPage}
-                disabled={currentPage <= 1}
-                data-tooltip="Previous Page"
-              >
+              className={`page-nav-button tooltip page-nav-button--${isDarkMode ? 'dark' : 'light'} ${isTouchDevice ? 'touch-button' : ''}`}
+              onClick={prevPage}
+              disabled={currentPage <= 1}
+              data-tooltip="Previous Page"
+                style={{ minHeight: isTouchDevice ? '40px' : '32px' }}
+            >
                 <ArrowLeft size={20} />
               </button>
               
               <button 
-                className={`page-nav-button tooltip page-nav-button--${isDarkMode ? 'dark' : 'light'}`}
+                className={`page-nav-button tooltip page-nav-button--${isDarkMode ? 'dark' : 'light'} ${isTouchDevice ? 'touch-button' : ''}`}
                 onClick={nextPage}
                 disabled={currentPage >= pages.length}
                 data-tooltip="Next Page"
+                style={{ minHeight: isTouchDevice ? '40px' : '32px' }}
               >
                 <ArrowRight size={20} />
               </button>

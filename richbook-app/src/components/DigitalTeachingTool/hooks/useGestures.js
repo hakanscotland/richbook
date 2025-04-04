@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 // Çok parmak hareketlerini (multitouch gestures) işleyen hook
 const useGestures = ({ 
@@ -36,7 +36,7 @@ const useGestures = ({
   };
   
   // Dokunma başlangıcı olayı
-  const handleTouchStart = (event) => {
+  const handleTouchStart = useCallback((event) => {
     // Eğer çizim modu aktifse, hareketleri işleme
     if (tool !== 'hand') {
       return;
@@ -57,10 +57,10 @@ const useGestures = ({
       swipeStartXRef.current = touches[0].clientX;
       setIsSwipeActive(true);
     }
-  };
+  }, [tool, zoom, setIsPinchActive, setIsSwipeActive]);
   
   // Dokunma hareketi (devam eden hareket)
-  const handleTouchMove = (event) => {
+  const handleTouchMove = useCallback((event) => {
     // Eğer çizim modu aktifse, hareketleri işleme
     if (tool !== 'hand') {
       return;
@@ -126,19 +126,19 @@ const useGestures = ({
         event.preventDefault();
       }
     }
-  };
+  }, [isPinchActive, isSwipeActive, nextPage, prevPage, setZoom, tool]);
   
   // Dokunma sonu olayı
-  const handleTouchEnd = (event) => {
+  const handleTouchEnd = useCallback((event) => {
     // Her tür dokunma hareketini sıfırla
     startDistanceRef.current = null;
     swipeStartXRef.current = null;
     setIsPinchActive(false);
     setIsSwipeActive(false);
-  };
+  }, [setIsPinchActive, setIsSwipeActive]);
   
   // Çift tıklama ile zoom yapma
-  const handleDoubleTap = (event) => {
+  const handleDoubleTap = useCallback((event) => {
     // Eğer çizim modu aktifse, çift tıklamayı işleme
     if (tool !== 'hand') {
       return;
@@ -166,12 +166,21 @@ const useGestures = ({
     }
     
     event.preventDefault();
-  };
+  }, [setZoom, tool, zoom]);
   
   // Olay dinleyicilerini bağla
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    
+    // Fonksiyonları konsola yazdır (debug amaçlı)
+    console.log('Gesture fonksiyonları oluşturuldu:', { 
+      nextPage, 
+      prevPage,
+      goToPage,
+      handleTouchStart,
+      handleTouchMove
+    });
     
     container.addEventListener('touchstart', handleTouchStart, { passive: false });
     container.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -203,8 +212,8 @@ const useGestures = ({
       container.removeEventListener('touchend', handleTouchEnd);
       container.removeEventListener('touchend', handleTap);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerRef, zoom, setZoom, tool, currentPage, nextPage, prevPage, isPinchActive, isSwipeActive]);
+  }, [containerRef, handleDoubleTap, handleTouchEnd, handleTouchMove, handleTouchStart, goToPage, nextPage, prevPage, tool]);
+  
   
   return {
     isPinchActive,

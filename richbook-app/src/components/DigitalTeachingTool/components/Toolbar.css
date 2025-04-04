@@ -1,3 +1,7 @@
+:root {
+  --toolbar-width: 120px;
+}
+
 .toolbar {
   position: absolute;
   border-radius: 8px;
@@ -9,7 +13,7 @@
   z-index: 950;
   /* !important ekleyerek mutlaka yakalanmasını sağlayacak */
   pointer-events: auto !important;
-  width: 120px !important; /* Base width for desktop */
+  width: var(--toolbar-width) !important; /* CSS değişkeni kullanalim */
   max-width: none !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   user-select: none;
@@ -314,6 +318,11 @@
   z-index: 1000;
 }
 
+/* Dokunmatik cihazlar için Toolbar */
+.touch-toolbar {
+  width: 150px !important;
+}
+
 /* Responsive ayarlar - Touchscreen cihazlar için */
 .touch-device .toolbar {
   width: 150px !important;
@@ -349,10 +358,26 @@
   font-size: 0.9rem;
 }
 
+/* Dokunmatik butonlar için ekstra stil */
+.touch-button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 10px !important;
+  margin: 4px !important;
+}
+
 /* iPad özel stiller */
 .ipad-device .toolbar {
   width: 160px !important; /* iPad için daha da geniş */
   border-width: 4px !important; /* Daha belirgin kenar çizgisi */
+}
+
+html.ipad-device body {
+  --toolbar-width: 160px !important;
 }
 
 .ipad-device .toolbar-button {

@@ -3,7 +3,7 @@
 
 // Import doğrudan html2canvas kütüphanesini dahil et, eğer bu kütüphane yüklü değilse
 // npm install html2canvas ile yükleyin
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Toolbar, Timer } from './components';
 import PageRenderer from './PageRenderer';
 import DrawingCanvas from './DrawingCanvas';
@@ -18,6 +18,7 @@ import useGestures from './hooks/useGestures';
 import html2canvas from 'html2canvas'; // HTML2Canvas doğrudan dahil ediliyor
 import './DigitalTeachingTool.css';
 import './gestures.css'; // Çok parmak hareketleri için CSS
+import './force-toolbar-width'; // Toolbar genişliğini zorlamak için
 
 const DigitalTeachingTool = () => {
   // Genel UI durumu
@@ -100,27 +101,27 @@ const DigitalTeachingTool = () => {
   });
   
   // Sayfa navigasyon fonksiyonları
-  const goToPage = (pageNum) => {
+  const goToPage = useCallback((pageNum) => {
     if (pageNum >= 1 && pageNum <= pages.length) {
       setCurrentPage(pageNum);
     }
-  };
-  
-  const nextPage = () => {
+  }, [pages.length, setCurrentPage]);
+
+  const nextPage = useCallback(() => {
     if (isDoublePageView) {
       goToPage(Math.min(currentPage + 2, pages.length));
     } else {
       goToPage(currentPage + 1);
     }
-  };
+  }, [currentPage, goToPage, isDoublePageView, pages.length]);
   
-  const prevPage = () => {
+  const prevPage = useCallback(() => {
     if (isDoublePageView) {
       goToPage(Math.max(currentPage - 2, 1));
     } else {
       goToPage(Math.max(currentPage - 1, 1));
     }
-  };
+  }, [currentPage, goToPage, isDoublePageView]);
   
   // Gesture hooks (çok parmak hareketleri için)
   const {
@@ -143,6 +144,20 @@ const DigitalTeachingTool = () => {
   // Dokunmatik cihaz tespiti
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   
+  // Dokunmatik cihazlar için özel işlevler
+  useEffect(() => {
+    // iPad'de sayfa navigasyon butonlarına dokunma işlevini iyileştir
+    if (isTouchDevice) {
+      console.log('Dokunmatik navigasyon işlevleri iyileştiriliyor...');
+      
+      // Sayfa navigasyon işlevselliğini kontrol et
+      console.log('Sayfa navigasyon fonksiyonları:', { goToPage, nextPage, prevPage });
+      
+      // Global nesneye bağla (hata ayıklama için)
+      window.richBookNav = { goToPage, nextPage, prevPage };
+    }
+  }, [isTouchDevice, goToPage, nextPage, prevPage]);
+  
   useEffect(() => {
     // Dokunmatik cihaz algılama
     const detectTouchDevice = () => {
@@ -150,20 +165,27 @@ const DigitalTeachingTool = () => {
                       navigator.maxTouchPoints > 0 || 
                       navigator.msMaxTouchPoints > 0;
       
+      console.log('Dokunmatik cihaz algılandı:', hasTouch);
+      
       // Dokunmatik cihaz tespit edildiğinde CSS sınıfı ekle
       if (hasTouch) {
         document.documentElement.classList.add('touch-device');
         document.body.classList.add('touch-device');
       }
       
-      // iPad tespiti (User Agent kontrolü)
-      const isIPad = /iPad/.test(navigator.userAgent) || 
-                    (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
+      // iPad/Tablet tespiti için daha geniş yöntemler kullan
+      const isIPadOS13 = navigator.platform === 'MacIntel' && 'ontouchend' in document;
+      const isIPad = /iPad/.test(navigator.userAgent) || isIPadOS13;
+      const isTablet = /Tablet|iPad|Playbook|Android(?!.*Mobile)|Silk(?!.*Mobile)/.test(navigator.userAgent);
       
-      if (isIPad) {
+      // iPad veya tablet ise özel CSS sınıfları ekle
+      if (isIPad || isTablet) {
+        console.log('iPad/Tablet algılandı:', isIPad ? 'iPad' : 'Tablet');
         document.documentElement.classList.add('ipad-device');
         document.body.classList.add('ipad-device');
-        console.log('iPad detected, applying specific styles');
+        document.documentElement.style.setProperty('--toolbar-width', '160px');
+      } else {
+        document.documentElement.style.setProperty('--toolbar-width', '120px');
       }
       
       return hasTouch;
