@@ -93,18 +93,21 @@ const FocusArea = ({
     height: 400
   });
   
-  // Set up keyboard shortcuts
+  // Handle zoom in, increasing zoom level with limits
   const handleZoomIn = useCallback(() => {
     setFocusZoom(prev => {
-      const newZoom = Math.min(prev + 0.1, 3);
-      return parseFloat(newZoom.toFixed(2)); // Limit precision to 2 decimal places
+      const newZoom = Math.min(prev + 0.2, 3.0); // Larger zoom step, max zoom 3x
+      console.log('Zoom in to:', newZoom);
+      return parseFloat(newZoom.toFixed(1)); // Limit precision to 1 decimal place
     });
   }, []);
   
+  // Handle zoom out, decreasing zoom level with minimum limit
   const handleZoomOut = useCallback(() => {
     setFocusZoom(prev => {
-      const newZoom = Math.max(prev - 0.1, 0.5);
-      return parseFloat(newZoom.toFixed(2)); // Limit precision to 2 decimal places
+      const newZoom = Math.max(prev - 0.2, 0.5); // Larger zoom step, min zoom 0.5x
+      console.log('Zoom out to:', newZoom);
+      return parseFloat(newZoom.toFixed(1)); // Limit precision to 1 decimal place
     });
   }, []);
   
@@ -135,15 +138,15 @@ const FocusArea = ({
         console.log('Original focus dimensions:', originalWidth, 'x', originalHeight);
         
         // Minimum dimensions to ensure UI is usable
-        const minWidth = Math.max(600, originalWidth * 1.4);
-        const minHeight = Math.max(400, originalHeight * 1.4);
+        const minWidth = Math.max(800, originalWidth * 1.8);
+        const minHeight = Math.max(600, originalHeight * 1.8);
         
         // Calculate aspect ratio to preserve proportions
         const aspectRatio = originalWidth / originalHeight;
         
-        // Initial container sizing (at least 40% larger than content)
-        let containerWidth = Math.max(minWidth, originalWidth * 1.4);
-        let containerHeight = Math.max(minHeight, originalHeight * 1.4);
+        // Initial container sizing (at least 80% larger than content)
+        let containerWidth = Math.max(minWidth, originalWidth * 1.8);
+        let containerHeight = Math.max(minHeight, originalHeight * 1.8);
         
         // Adjust if container exceeds viewport bounds
         if (containerWidth > maxWidth) {
@@ -157,8 +160,8 @@ const FocusArea = ({
         }
         
         // Ensure minimum sizes are respected despite viewport constraints
-        containerWidth = Math.max(600, containerWidth);
-        containerHeight = Math.max(400, containerHeight);
+        containerWidth = Math.max(800, containerWidth);
+        containerHeight = Math.max(600, containerHeight);
         
         console.log('Final container size:', containerWidth, 'x', containerHeight);
         
@@ -186,8 +189,8 @@ const FocusArea = ({
   // Initialize focus area on load with proper zoom
   useEffect(() => {
     if (focusArea && focusArea.dataURL) {
-      // Set initial zoom to 1.0 (actual size)
-      setFocusZoom(1.0);
+      // Set initial zoom to 1.2 for slightly larger display
+      setFocusZoom(1.2);
       setIsLoading(true);
       
       console.log('Focus area initialization:', {
@@ -512,9 +515,10 @@ const FocusArea = ({
               e.stopPropagation();
               handleZoomIn();
             }}
-            title="Yakınlaştır"
+            title="Yakınlaştır (+)"
           >
             <ZoomIn size={20} />
+            <span className="zoom-button-info">{Math.round(focusZoom * 100)}%</span>
           </button>
           
           {/* Uzaklaştır */}
@@ -525,7 +529,7 @@ const FocusArea = ({
               e.stopPropagation();
               handleZoomOut();
             }}
-            title="Uzaklaştır"
+            title="Uzaklaştır (-)"
           >
             <ZoomOut size={20} />
           </button>
@@ -640,11 +644,15 @@ const FocusArea = ({
         
         {/* Keyboard shortcuts info */}
         <div className={`focus-shortcuts-info focus-shortcuts-info--${isDarkMode ? 'dark' : 'light'}`}>
-          ESC: Kapat • +/-: Yakınlaştır • Delete: Seçili öğeyi sil
+          <strong>Klavye Kısayolları:</strong> 
+          ESC: Kapat • 
+          <span className="shortcut-zoom-key">+/-: Yakınlaştır/Uzaklaştır</span> • 
+          Delete: Seçili öğeyi sil
         </div>
         
         {/* Zoom indicator */}
         <div className="focus-zoom-indicator">
+          <ZoomIn size={16} style={{ marginRight: '4px' }} />
           {Math.round(focusZoom * 100)}%
         </div>
       </div>

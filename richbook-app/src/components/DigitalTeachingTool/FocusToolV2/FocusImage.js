@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
 import './styles.css';
 
@@ -19,41 +19,31 @@ const FocusImage = ({
   isDarkMode,
   containerSize
 }) => {
-  // Hesapla: görüntü boyutlarını container boyutlarına sığdır
-  const imageStyle = React.useMemo(() => {
-    if (!focusArea) return {};
+  // Calculate the image style based on zoom level
+  const imageStyle = useMemo(() => {
+    // Calculate background size based on zoom level to match Stage zoom
+    // We apply 100% as the base (zoom=1), and scale from there
+    const backgroundSize = `${100 * focusZoom}% auto`;
     
-    // Görüntü oranları
-    const imageWidth = focusArea.originalWidth;
-    const imageHeight = focusArea.originalHeight;
-    const containerWidth = containerSize.width * 0.33 - 20; // padding için -20px
-    const containerHeight = containerSize.height - 100; // header ve footer 
-    
-    // En-boy oranını koru
-    const imageRatio = imageWidth / imageHeight;
-    
-    // Container sınırlarına göre boyutlandır
-    let width = imageWidth;
-    let height = imageHeight;
-    
-    if (width > containerWidth) {
-      width = containerWidth;
-      height = width / imageRatio;
-    }
-    
-    if (height > containerHeight) {
-      height = containerHeight;
-      width = height * imageRatio;
-    }
+    console.log(`Applying zoom: ${focusZoom}, background size: ${backgroundSize}`);
     
     return {
       width: '100%',
       height: '100%',
-      backgroundSize: 'contain', // Görüntüyü sığdır
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat'
+      backgroundImage: `url(${focusArea.dataURL})`,
+      backgroundSize: backgroundSize,  // Apply zoom to image size
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'top center', 
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1,
+      transform: `scale(${focusZoom})`,  // Apply scale transform for drawing accuracy
+      transformOrigin: 'top center'      // Maintain alignment with top
     };
-  }, [focusArea, containerSize]);
+  }, [focusArea.dataURL, focusZoom]);
   
   return (
     <div 
@@ -63,7 +53,7 @@ const FocusImage = ({
         height: containerSize.height - 80, // Adjust for header height
         borderRight: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start', // Change from 'center' to 'flex-start' to align at top
         justifyContent: 'center',
         overflow: 'hidden',
         position: 'relative',
@@ -82,23 +72,8 @@ const FocusImage = ({
           alignItems: 'center'
         }}
       >
-        {/* Görüntü arkaplanı */}
-        <div 
-          style={{
-            width: '100%',
-            height: '100%',
-            backgroundImage: `url(${focusArea.dataURL})`,
-            backgroundSize: 'contain',  // Görüntüyü kırpmadan sığdır
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1
-          }}
-        />
+        {/* Görüntü arkaplanı - Zoom ile birlikte boyutlandırılır */}
+        <div style={imageStyle} />
         
         {/* Çizim katmanı */}
         <Stage
@@ -114,9 +89,9 @@ const FocusImage = ({
           className="focus-canvas"
           style={{ 
             position: 'absolute',
-            top: '50%',
+            top: 0,
             left: '50%',
-            transform: 'translate(-50%, -50%)',
+            transform: 'translateX(-50%)',
             zIndex: 10,
             cursor: tool === 'hand' ? 'grab' : (
               tool === 'text' ? 'text' : 'crosshair'
