@@ -1,5 +1,5 @@
 // Curtain.js - Improved Curtain Component
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 const Curtain = ({ isDarkMode, onClose }) => {
   // Curtain state
@@ -12,13 +12,13 @@ const Curtain = ({ isDarkMode, onClose }) => {
   
   const containerRef = useRef(null);
   
-  // Calculate visible area dimensions
-  const visibleArea = {
-    top: topCurtain,
-    right: rightCurtain,
-    bottom: bottomCurtain,
-    left: leftCurtain
-  };
+  // Calculate visible area dimensions (used for debugging or future features)
+  // const visibleArea = {
+  //   top: topCurtain,
+  //   right: rightCurtain,
+  //   bottom: bottomCurtain,
+  //   left: leftCurtain
+  // };
   
   // Handle mouse/touch down events on curtain edges
   const handleDragStart = (edge, e) => {
@@ -31,7 +31,7 @@ const Curtain = ({ isDarkMode, onClose }) => {
   };
   
   // Handle mouse/touch move events
-  const handleDragMove = (e) => {
+  const handleDragMove = useCallback((e) => {
     if (!activeDrag) return;
     
     const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
@@ -51,7 +51,7 @@ const Curtain = ({ isDarkMode, onClose }) => {
     }
     
     setStartPosition({ x: clientX, y: clientY });
-  };
+  }, [activeDrag, startPosition, topCurtain, rightCurtain, bottomCurtain, leftCurtain]);
   
   // Handle mouse/touch up events
   const handleDragEnd = () => {
@@ -76,7 +76,7 @@ const Curtain = ({ isDarkMode, onClose }) => {
       document.removeEventListener('touchmove', handleMove);
       document.removeEventListener('touchend', handleEnd);
     };
-  }, [activeDrag, startPosition]);
+  }, [activeDrag, startPosition, handleDragMove]);
   
   // Reset all curtains
   const resetCurtains = () => {

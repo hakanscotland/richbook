@@ -27,20 +27,59 @@ const useDrawing = ({
   const [isDrawing, setIsDrawing] = useState(false);
   
   // Sayfa değişikliklerini izle
-    useEffect(() => {
-      // Mevcut çizimleri kaydet
-      if (lines.length > 0) {
-        setPageDrawings(prev => ({
+  useEffect(() => {
+    // Mevcut çizimleri kaydet
+    if (lines.length > 0) {
+      // Kalıcı kaydetme için ve sayfa geçişlerinde verilerin korunması için
+      setPageDrawings(prev => {
+        const updatedDrawings = {
           ...prev,
           [currentPage]: lines
-        }));
+        };
+        
+        // İsteğe bağlı - localStorage'da saklamak için
+        try {
+          localStorage.setItem(`pageDrawings_${currentPage}`, JSON.stringify(lines));
+        } catch (error) {
+          console.error('Sayfa çizimlerini saklama hatası:', error);
+        }
+        
+        return updatedDrawings;
+      });
+    }
+    
+    // Yeni sayfadaki çizimleri yükle
+    const loadDrawings = () => {
+      // Önce belleğe kaydedilmiş çizimleri kontrol et
+      let savedDrawings = pageDrawings[currentPage] || [];
+      
+      // Eğer belleğe kaydedilmiş çizim yoksa, localStorage'a bak (İsteğe bağlı)
+      if (savedDrawings.length === 0) {
+        try {
+          const storedDrawings = localStorage.getItem(`pageDrawings_${currentPage}`);
+          if (storedDrawings) {
+            savedDrawings = JSON.parse(storedDrawings);
+            
+            // localStorage'dan yüklenen çizimleri pageDrawings'e ekle
+            setPageDrawings(prev => ({
+              ...prev,
+              [currentPage]: savedDrawings
+            }));
+          }
+        } catch (error) {
+          console.error('LocalStorage\'dan çizim yükleme hatası:', error);
+        }
       }
       
+      // Çizimleri yerel state'e yükle
+      setLines(savedDrawings);
+    };
+    
     // Yeni sayfadaki çizimleri yükle
-    const savedDrawings = pageDrawings[currentPage] || [];
-    setLines(savedDrawings);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, pageDrawings, setPageDrawings]);  // lines dependency removed to prevent circular updates
+    loadDrawings();
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);  // lines ve pageDrawings dependency'lerini çıkardık - döngüsel güncellemeleri önlemek için
   
   // Mouse down işleyicisi
   const handleMouseDown = (e) => {
@@ -70,18 +109,34 @@ const useDrawing = ({
     const pointerPosition = stage.getPointerPosition();
     if (!pointerPosition) return;
     
-    // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
-    // Bu değişiklik, çizim noktasının doğru konumda olmasını sağlar
-    // NOT: Burada zoom'u böldüğümüz için, dokunmatik/fare pozisyonu Stage içinde,
-    // ancak Layer içindeki gerçek çizim pozisyonu için bu ayarlanmalıdır.
-    const stageOffset = {
-      x: stage.x(),
-      y: stage.y()
-    };
-
-    // Mouse/touch pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
-    const x = (pointerPosition.x - stageOffset.x) / zoom;
-    const y = (pointerPosition.y - stageOffset.y) / zoom;
+    // ÖNEMLİ DEĞİŞİKLİK: Pointer pozisyonunu doğrudan alma
+    // Stage'in içindeki ilk Layer'a göre relatif konumu hesapla
+    // Bu, zoom kayması sorununu çözmelidir.
+    
+    // İşlem sırası:
+    // 1. Önce pointer pozisyonunu alıyoruz (ekran koordinatları)
+    // 2. Stage'den relativPosition hesaplıyoruz
+    // Böylece zoom seviyesinden bağımsız doğru konumu alıyoruz
+    
+    // DENEYSEL: Global koordinatları lokal koordinatlara çevir
+    const position = stage.getPointerPosition();
+    
+    // Stage'den ilk layer'a referans al
+    const layer = stage.findOne('Layer');
+    
+    if (!layer) {
+      console.error('Layer bulunamadı, koordinat dönüşümü yapılamadı.');
+      return;
+    }
+    
+    // Global'den lokal koordinatlara çevirme (zoom ve pan kompanzasyonu)
+    const relativePosition = layer.getRelativePointerPosition();
+    
+    // Eğer relativePosition alınamadıysa, stage pozisyonunu kullan
+    const x = relativePosition ? relativePosition.x : position.x;
+    const y = relativePosition ? relativePosition.y : position.y;
+    
+    console.log('Çizim başlangıç koordinatları:', x, y, 'Zoom seviyesi:', zoom);
     
     // Araç özelliklerine göre yeni çizgi oluştur
     let newLine = {
@@ -141,15 +196,21 @@ const useDrawing = ({
     const pointerPosition = stage.getPointerPosition();
     if (!pointerPosition) return;
     
-    // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
-    const stageOffset = {
-      x: stage.x(),
-      y: stage.y()
-    };
+    // ÖNEMLİ DEĞİŞİKLİK: getRelativePointerPosition kullanarak zoom/pan'a göre düzgün çizim
+    // Stage'den ilk layer'a referans al
+    const layer = stage.findOne('Layer');
     
-    // Mouse/touch pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
-    const x = (pointerPosition.x - stageOffset.x) / zoom;
-    const y = (pointerPosition.y - stageOffset.y) / zoom;
+    if (!layer) {
+      console.error('Layer bulunamadı, koordinat dönüşümü yapılamadı.');
+      return;
+    }
+    
+    // Global'den lokal koordinatlara çevirme (zoom ve pan kompanzasyonu)
+    const relativePosition = layer.getRelativePointerPosition();
+    
+    // Eğer relativePosition alınamadıysa, stage pozisyonunu kullan
+    const x = relativePosition ? relativePosition.x : pointerPosition.x;
+    const y = relativePosition ? relativePosition.y : pointerPosition.y;
     
     setCurrentLine({
       ...currentLine,
@@ -201,14 +262,16 @@ const useDrawing = ({
         const offsetY = touch.clientY - boundingRect.top;
 
         // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
-        const stageOffset = {
-          x: stage.x(),
-          y: stage.y()
-        };
+        // Odak alanı seçimi için sadece offsetX/Y değerleri kullanılıyor, stageOffset gerekmemektedir
+        // const stageOffset = {
+        //   x: stage.x(),
+        //   y: stage.y()
+        // };
 
         // Dokunmatik pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
-        const x = (offsetX - stageOffset.x) / zoom;
-        const y = (offsetY - stageOffset.y) / zoom;
+        // Odak alanı seçimi için sadece ofset değerleri kullanılıyor
+        // const adjustedX = (offsetX - stageOffset.x) / zoom;
+        // const adjustedY = (offsetY - stageOffset.y) / zoom;
         
         setDragStart({
           x: offsetX,
@@ -229,15 +292,23 @@ const useDrawing = ({
     const pointerPosition = stage.getPointerPosition();
     if (!pointerPosition) return;
     
-    // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
-    const stageOffset = {
-      x: stage.x(),
-      y: stage.y()
-    };
+    // ÖNEMLİ DEĞİŞİKLİK: Dokunmatik için relatif pozisyon
+    // Stage'den ilk layer'a referans al
+    const layer = stage.findOne('Layer');
     
-    // Mouse/touch pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
-    const x = (pointerPosition.x - stageOffset.x) / zoom;
-    const y = (pointerPosition.y - stageOffset.y) / zoom;
+    if (!layer) {
+      console.error('Layer bulunamadı, koordinat dönüşümü yapılamadı.');
+      return;
+    }
+    
+    // Global'den lokal koordinatlara çevirme (zoom ve pan kompanzasyonu)
+    const relativePosition = layer.getRelativePointerPosition();
+    
+    // Eğer relativePosition alınamadıysa, stage pozisyonunu kullan
+    const x = relativePosition ? relativePosition.x : pointerPosition.x;
+    const y = relativePosition ? relativePosition.y : pointerPosition.y;
+    
+    console.log('Dokunmatik başlangıç koordinatları:', x, y, 'Zoom seviyesi:', zoom);
     
     // Araç özelliklerine göre yeni çizgi oluştur
     let newLine = {
@@ -309,15 +380,30 @@ const useDrawing = ({
       
       if (!isDrawing || !currentLine) return;
       
-      // Stage konumu ve zoom'ı dikkate alarak gerçek koordinatları hesapla
-      const stageOffset = {
-        x: stage.x(),
-        y: stage.y()
+      // ÖNEMLİ DEĞİŞİKLİK: Dokunmatik için geçerli Layer'dan relatif pozisyon hesaplama
+      // Çizim koordinatlarındaki kayma sorunu için özel yaklaşım
+      
+      // Stage'den ilk layer'a referans al
+      const layer = stage.findOne('Layer');
+      
+      if (!layer) {
+        console.error('Layer bulunamadı, koordinat dönüşümü yapılamadı.');
+        return;
+      }
+      
+      // Dokunmatik koordinatları manual olarak lokal koordinatlara çevirme
+      // 1. Önce dokunmatik olayın ekran koordinatlarını al
+      // 2. Layer'a göre relatif pozisyonu hesapla
+      
+      // Dokunmatik için hesaplama ekstra dikkat gerektirir
+      const stageBox = stage.container().getBoundingClientRect();
+      const layerPosition = {
+        x: (offsetX - stageBox.left - stage.x()) / stage.scaleX(),
+        y: (offsetY - stageBox.top - stage.y()) / stage.scaleY()
       };
       
-      // Dokunmatik pozisyonunu stage'in ofset ve zoom değerine göre düzeltiyoruz
-      const x = (offsetX - stageOffset.x) / zoom;
-      const y = (offsetY - stageOffset.y) / zoom;
+      const x = layerPosition.x;
+      const y = layerPosition.y;
       
       // Apple Pencil basınç güncellemesi
       let updatedLine = {
@@ -365,14 +451,27 @@ const useDrawing = ({
 
   // Tüm çizimleri temizle
   const clearDrawings = () => {
+    // Lokal çizim satırlarını temizle
     setLines([]);
     setCurrentLine(null);
     
-    // Sayfa çizimlerini güncelle
-    setPageDrawings(prev => ({
-      ...prev,
-      [currentPage]: []
-    }));
+    // Sayfa çizimlerini güncelle - kalıcı olarak temizle
+    setPageDrawings(prev => {
+      // Geçerli sayfa için boş bir dizi ata, diğer sayfaları koru
+      const updatedDrawings = {
+        ...prev,
+        [currentPage]: []
+      };
+      
+      // Yerel depolama için çizimleri sil (kaldır)
+      try {
+        localStorage.removeItem(`pageDrawings_${currentPage}`);
+      } catch (error) {
+        console.error('LocalStorage temizleme hatası:', error);
+      }
+      
+      return updatedDrawings;
+    });
   };
 
   // Dokunmatik olaylarda throttle kullanarak performansı iyileştirme
