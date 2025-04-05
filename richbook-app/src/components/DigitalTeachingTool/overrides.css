@@ -1,0 +1,74 @@
+/**
+ * Bu dosya, özellikle build sürecinde ve dokunmatik cihazlarda oluşan stil sorunlarını 
+ * düzeltmek için !important ile stil geçersiz kılmalarını içerir.
+ */
+
+/* Home ve Ayarlar butonları için grid düzeni */
+.home-settings-pair {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  grid-gap: 10px !important;
+  width: 90% !important;
+  margin-bottom: 10px !important;
+}
+
+/* iPhone, iPad ve diğer dokunmatik cihazlar için ekstra güçlü stil */
+@media (pointer: coarse) {
+  .home-settings-pair {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    width: 90% !important;
+    margin-bottom: 10px !important;
+    max-width: 90% !important;
+  }
+  
+  /* Drawing Tools - Clear Button için düzeltme */
+  .drawing-tool-button--clear {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 10px !important;
+    margin-top: 8px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  /* Drawing Tools panel genişliği için düzeltme */
+  .drawing-tools-panel {
+    width: 60px !important;
+  }
+  
+  /* Dokunmatik cihazlarda tüm toolbar button-pair'leri için iyileştirmeler */
+  .toolbar-button-pair {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 90% !important;
+    max-width: 90% !important;
+  }
+  
+  /* Thumbnail kenar çubuğu için dokunmatik kaydırma iyileştirmeleri */
+  .thumbnails-container {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    overscroll-behavior: contain !important;
+    min-height: 0 !important;
+    scrollbar-width: thin !important;
+  }
+  
+  .thumbnail-item {
+    scroll-snap-align: start !important;
+    min-height: 80px !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+/* iPad ve tablet'ler için özel overrides */
+.ipad-device .toolbar-button-pair.home-settings-pair,
+html.ipad-device .toolbar-button-pair.home-settings-pair,
+body.ipad-device .toolbar-button-pair.home-settings-pair {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  width: 90% !important;
+  margin-bottom: 10px !important;
+}

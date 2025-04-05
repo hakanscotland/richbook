@@ -342,12 +342,12 @@
 /* Araç ayarları sarmalayıcısı */
 .tool-options-wrapper {
   z-index: 1700;
+  position: absolute;
 }
 
 /* Araç ayarları paneli stilleri */
 .tool-options-panel {
   user-select: none;
-  position: absolute;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -355,7 +355,63 @@
   overflow: visible;
   z-index: 1700;
   animation: slideInFromLeft 0.2s ease-out;
-  position: relative;
+}
+
+/* iPad ve dokunmatik cihazlar için ayarlar paneli iyileştirmeleri */
+@media (pointer: coarse) {
+  .tool-options-panel {
+    width: 250px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    border-width: 2px;
+  }
+  
+  .color-section,
+  .thickness-section {
+    padding: 16px;
+  }
+  
+  .color-grid {
+    gap: 12px;
+  }
+  
+  .color-swatch {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .thickness-options {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .thickness-swatch {
+    transform: scale(1.2);
+  }
+  
+  .thickness-slider {
+    height: 12px;
+    margin: 16px 0;
+  }
+  
+  .thickness-slider::-webkit-slider-thumb {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .thickness-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .thickness-value {
+    font-size: 16px;
+    margin-top: 5px;
+  }
+  
+  .tool-options-header {
+    padding: 12px 16px;
+    font-size: 16px;
+  }
 }
 
 .tool-options-panel--dark {
@@ -394,6 +450,17 @@
   border-color: inherit;
   box-shadow: -2px 2px 2px rgba(0, 0, 0, 0.05);
   z-index: -1;
+}
+
+/* iPad için ok işaretini düzeltme */
+@media (pointer: coarse) {
+  .tool-options-panel::before {
+    top: 24px; /* Biraz daha aşağı pozisyon */
+    width: 16px;
+    height: 16px;
+    left: -8px;
+    box-shadow: -3px 3px 3px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .tool-options-header {

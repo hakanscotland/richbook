@@ -301,17 +301,34 @@ const FocusArea = ({
     
     // Get button position
     const buttonRect = e.currentTarget.getBoundingClientRect();
+    const focusContainerRect = focusPopupRef.current.getBoundingClientRect();
     
     // Set the current tool to the selected one if needed
     if (toolType && toolType !== tool) {
       selectFocusTool(toolType);
     }
     
-    // Position the panel to the right of the left toolbar
-    setFocusToolOptionsPosition({
-      x: 70, // Width of left toolbar + 10px gap
-      y: buttonRect.top - focusPopupRef.current.getBoundingClientRect().top
-    });
+    // Dokunmatik cihazları tespit et
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Konumlandırmayı cihaz türüne göre ayarla
+    if (isTouchDevice) {
+      // iPad ve dokunmatik cihazlar için ayarlar penceresini daha merkezi konumlandır
+      // Böylece ekranın dışına taşmasını önleriz
+      setFocusToolOptionsPosition({
+        x: 80, // Sol araç çubuğundan biraz daha uzak
+        y: Math.min(
+          Math.max(buttonRect.top - focusContainerRect.top, 60), // Minimum 60px yukarıda
+          focusContainerRect.height - 300 // Panel yüksekliğini göz önünde bulundur
+        )
+      });
+    } else {
+      // Masaüstü cihazlar için normal konumlandırma
+      setFocusToolOptionsPosition({
+        x: 70, // Sol araç çubuğunun genişliği + 10px boşluk
+        y: buttonRect.top - focusContainerRect.top
+      });
+    }
     
     // Toggle panel visibility
     setShowFocusToolOptions(!showFocusToolOptions);

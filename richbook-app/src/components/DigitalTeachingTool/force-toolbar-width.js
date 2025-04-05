@@ -39,11 +39,22 @@
           console.log('[ForceToolbarWidth] Toolbar genişliği zorlandı:', toolbar);
           
           // Home ve Ayarlar butonlarının yan yana görünmesini sağla
+          const homeSettingsPair = toolbar.querySelector('.home-settings-pair');
+          if (homeSettingsPair) {
+            // HTML attribute olarak doğrudan stil ver - en güçlü yöntem
+            homeSettingsPair.setAttribute('style', 'display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; width: 90% !important; margin-bottom: 10px !important;');
+            console.log('[ForceToolbarWidth] Home-Settings layout düzeltildi');
+          }
+          
+          // Tüm button-pair'leri kontrol et
           const buttonPairs = toolbar.querySelectorAll('.toolbar-button-pair');
           buttonPairs.forEach(pair => {
-            pair.style.display = 'grid';
-            pair.style.gridTemplateColumns = '1fr 1fr';
-            pair.style.width = '90%';
+            // Eğer halihazırda home-settings-pair değilse
+            if (!pair.classList.contains('home-settings-pair')) {
+              pair.style.display = 'grid';
+              pair.style.gridTemplateColumns = '1fr 1fr';
+              pair.style.width = '90%';
+            }
           });
         });
       }

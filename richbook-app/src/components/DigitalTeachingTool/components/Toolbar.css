@@ -2,6 +2,15 @@
   --toolbar-width: 120px;
 }
 
+/* Home ve Ayarlar butonları için özel stil - CACH OVERRIDE */
+.home-settings-pair {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+  width: 90% !important;
+}
+
 /* 3D Efektler azaltma */
 @media (max-width: 768px), (pointer: coarse) {
   @keyframes clock-rotate {

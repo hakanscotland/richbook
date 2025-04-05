@@ -18,7 +18,11 @@ import useGestures from './hooks/useGestures';
 import html2canvas from 'html2canvas'; // HTML2Canvas doğrudan dahil ediliyor
 import './DigitalTeachingTool.css';
 import './gestures.css'; // Çok parmak hareketleri için CSS
+import './overrides.css'; // Özel düzeltmeler ve override'lar için
 import './force-toolbar-width'; // Toolbar genişliğini zorlamak için
+import './force-home-settings'; // Home ve Ayarlar butonlarını yan yana zorlamak için
+import './fixIPadFocusTools'; // iPad'de Focus Tools için düzeltmeler
+import './fixThumbnailScroll'; // Thumbnail kaydırma işlevini iyileştirme
 
 const DigitalTeachingTool = () => {
   // Genel UI durumu

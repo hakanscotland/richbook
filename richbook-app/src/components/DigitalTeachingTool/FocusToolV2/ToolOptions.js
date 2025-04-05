@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, PenLine, Highlighter, Eraser } from 'lucide-react';
 import './styles.css';
 
@@ -15,6 +15,37 @@ const ToolOptions = ({
   setShowFocusToolOptions, 
   isDarkMode
 }) => {
+  
+  // iPad için ekstra kontrol
+  useEffect(() => {
+    // Dokunmatik cihaz mı kontrol et
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    if (isTouchDevice) {
+      // Panelin konumunu denetleyen bir fonksiyon
+      const checkPosition = () => {
+        // Panel elemanını bul
+        const panel = document.querySelector('.tool-options-panel');
+        if (!panel) return;
+        
+        // Panel konumunu kontrol et
+        const panelRect = panel.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        
+        // Ekranın sağ tarafına taşıyorsa, konumunu ayarla
+        if (panelRect.right > windowWidth - 20) {
+          const parent = panel.parentElement;
+          if (parent) {
+            parent.style.left = `${Math.max(80, windowWidth - panelRect.width - 30)}px`;
+          }
+        }
+      };
+      
+      // Panelin pozisyonunu kontrol et
+      setTimeout(checkPosition, 50);
+      setTimeout(checkPosition, 200);
+    }
+  }, []);
   
   return (
     <div className={`tool-options-panel tool-options-panel--${isDarkMode ? 'dark' : 'light'}`}>
