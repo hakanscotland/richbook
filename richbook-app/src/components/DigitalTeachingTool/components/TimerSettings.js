@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { X, Move } from 'lucide-react';
 
 const TimerSettings = ({ 
   isDarkMode, 
@@ -7,19 +8,83 @@ const TimerSettings = ({
   onCancel 
 }) => {
   const [minutes, setMinutes] = useState(initialMinutes);
+  const [position, setPosition] = useState({ x: window.innerWidth / 2 - 130, y: window.innerHeight / 2 - 100 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const containerRef = useRef(null);
 
   const handleSave = () => {
     onSave(minutes);
   };
 
+  // Sürükleme işleyicileri
+  const startDragging = (e) => {
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+    
+    setIsDragging(true);
+    
+    if (e.type === 'touchstart') {
+      // Dokunmatik olay
+      const touch = e.touches[0];
+      setDragOffset({
+        x: touch.clientX - position.x,
+        y: touch.clientY - position.y
+      });
+    } else {
+      // Mouse olayı
+      setDragOffset({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    }
+  };
+
+  const handleDrag = (e) => {
+    if (!isDragging) return;
+    
+    let clientX, clientY;
+    
+    if (e.type === 'touchmove') {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      const touch = e.touches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    // Ekran sınırlarını kontrol et
+    const containerWidth = containerRef.current ? containerRef.current.offsetWidth : 260;
+    const containerHeight = containerRef.current ? containerRef.current.offsetHeight : 200;
+    
+    const maxX = window.innerWidth - containerWidth;
+    const maxY = window.innerHeight - containerHeight;
+    
+    // Ekran dışına çıkmasını önle
+    const newX = Math.min(Math.max(0, clientX - dragOffset.x), maxX);
+    const newY = Math.min(Math.max(0, clientY - dragOffset.y), maxY);
+    
+    setPosition({ x: newX, y: newY });
+  };
+
+  const stopDragging = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div 
+      ref={containerRef}
       className={`timer-settings-container timer-settings-container--${isDarkMode ? 'dark' : 'light'}`}
       style={{
         position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
+        top: `${position.y}px`,
+        left: `${position.x}px`,
+        transform: 'none',
         backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
         color: isDarkMode ? '#f9fafb' : '#1f2937',
         borderRadius: '8px',
@@ -30,9 +95,40 @@ const TimerSettings = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        cursor: isDragging ? 'grabbing' : 'default',
       }}
+      onMouseMove={handleDrag}
+      onTouchMove={handleDrag}
+      onMouseUp={stopDragging}
+      onTouchEnd={stopDragging}
+      onMouseLeave={stopDragging}
     >
-      <h3 style={{ margin: '0 0 16px 0', fontWeight: 600, fontSize: '18px' }}>Timer Settings</h3>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', cursor: 'move' }}
+          onMouseDown={startDragging}
+          onTouchStart={startDragging}
+        >
+          <Move size={18} style={{ marginRight: '8px' }} />
+          <h3 style={{ margin: 0, fontWeight: 600, fontSize: '18px' }}>Timer Settings</h3>
+        </div>
+        
+        <button
+          onClick={onCancel}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: isDarkMode ? '#d1d5db' : '#4b5563',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4px'
+          }}
+        >
+          <X size={18} />
+        </button>
+      </div>
       
       <div style={{ width: '100%', marginBottom: '16px' }}>
         <label htmlFor="timer-minutes" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
@@ -52,6 +148,7 @@ const TimerSettings = ({
             border: isDarkMode ? '1px solid #4b5563' : '1px solid #d1d5db',
             backgroundColor: isDarkMode ? '#374151' : '#f9fafb',
             color: isDarkMode ? '#f9fafb' : '#1f2937',
+            boxSizing: 'border-box'
           }}
         />
       </div>

@@ -19,9 +19,16 @@ const DrawingTools = ({
 
   // Calculate position based on toolbar position
   const getPanelPosition = () => {
-    // Panel will appear to the right of the toolbar
+    // Panel will appear to the right of the toolbar with additional offset
+    // Get the actual toolbar width from CSS variable or default to 150px
+    const toolbarWidth = parseInt(getComputedStyle(document.documentElement)
+      .getPropertyValue('--toolbar-width')) || 150;
+    
+    // Add additional offset to prevent overlap
+    const offsetX = 20; // Additional 20px offset to the right
+    
     return {
-      left: `${toolbarPosition.x + 120}px`, // Position to the right of toolbar
+      left: `${toolbarPosition.x + toolbarWidth + offsetX}px`, // Position to the right of toolbar with offset
       top: `${toolbarPosition.y}px`, // Align with the top of toolbar
     };
   };
@@ -32,14 +39,13 @@ const DrawingTools = ({
     // Keep the panel open for easier tool switching
   };
 
-  // Renk seçenekleri
+  // Renk seçenekleri - turuncu rengi kaldırıldı
   const colorOptions = [
     '#000000', // Siyah
     '#FFFFFF', // Beyaz
     '#0096FF', // Mavi
     '#FF0000', // Kırmızı
     '#00AA00', // Yeşil
-    '#FF9500', // Turuncu
     '#9900EF'  // Mor
   ];
 
@@ -113,7 +119,6 @@ const DrawingTools = ({
                            clr === '#0096FF' ? 'Blue' : 
                            clr === '#FF0000' ? 'Red' : 
                            clr === '#00AA00' ? 'Green' : 
-                           clr === '#FF9500' ? 'Orange' : 
                            clr === '#9900EF' ? 'Purple' : 'Color'}
                   />
                 ))}

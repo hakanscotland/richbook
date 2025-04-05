@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Hand, ArrowLeft, ArrowRight, ZoomIn, ZoomOut,
-  Grid, Settings, Move, X, ChevronDown, Clock
+  Grid, Settings, Move, X, ChevronDown, Clock, Trash2, RotateCcw
 } from 'lucide-react';
 import { CropIcon, CurtainClosedIcon, CurtainOpenIcon, DrawingToolIcon, HomeIcon } from '../icons/CustomIcons';
 import DrawingTools from './DrawingTools';
-import TimerSettings from './TimerSettings';
 import ClockDisplay from './ClockDisplay';
 import './Toolbar.css';
 
@@ -51,24 +50,13 @@ const Toolbar = ({
   opacity,
   setOpacity,
 }) => {
-  // Sayaç için state'ler
-  const [timerMinutes, setTimerMinutesLocal] = useState(5);
-  const [showTimerSettings, setShowTimerSettings] = useState(false);
-  
-  // Timer input değiştiğinde parent komponente bildir
-  useEffect(() => {
-    setTimerMinutes(timerMinutes);
-  }, [timerMinutes, setTimerMinutes]);
-  
   // Sayfa numarası düzenleme durumu
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [pageInputValue, setPageInputValue] = useState("");
-
-  // Timer ayarlarını kaydet
-  const handleSaveTimerSettings = (minutes) => {
-    setTimerMinutesLocal(minutes);
-    setShowTimerSettings(false);
-    setShowTimer(true);
+  
+  // Zoom'u sıfırlama fonksiyonu
+  const resetZoom = () => {
+    setZoom(1);
   };
   
   useEffect(() => {
@@ -126,11 +114,6 @@ const Toolbar = ({
       {/* Toolbar içeriği - Collapse durumundaysa gizle */}
       {!isToolbarCollapsed && (
         <>
-          {/* Dijital Saat - Yanıp sönen iki nokta ile */}
-          <div className="toolbar-clock">
-            <ClockDisplay time={time} />
-          </div>
-          
           {/* Row 1: Home and Settings side by side */}
           <div 
             className="toolbar-button-pair home-settings-pair"
@@ -239,6 +222,25 @@ const Toolbar = ({
             </button>
           </div>
           
+          {/* Row 4.5: Reset ve Clear butonları yan yana */}
+          <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px', marginBottom: '10px' }}>
+            <button 
+              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              onClick={resetZoom}
+              data-tooltip="Reset Zoom"
+            >
+              <RotateCcw size={22} />
+            </button>
+            
+            <button 
+              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              onClick={clearDrawings}
+              data-tooltip="Clear All"
+            >
+              <Trash2 size={22} />
+            </button>
+          </div>
+          
           {/* Sayfa Navigasyonu */}
           <div className="toolbar-navigation">
             <div 
@@ -328,12 +330,8 @@ const Toolbar = ({
             <button 
               className={`toolbar-button tooltip ${showTimer ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
-                if (!showTimer) {
-                  setShowTimerSettings(true);
-                  setShowDrawingTools(false); // Drawing paneli kapat
-                } else {
-                  setShowTimer(false);
-                }
+                setShowTimer(!showTimer);
+                setShowDrawingTools(false); // Drawing paneli kapat
               }}
               data-tooltip="Timer"
             >
@@ -353,9 +351,18 @@ const Toolbar = ({
             </button>
           </div>
           
+          {/* Dijital Saat - Logo üstüne taşındı, doğal görünüm */}
+          <div className="toolbar-clock toolbar-clock--natural">
+            <ClockDisplay time={time} />
+          </div>
+          
           {/* Logo at the bottom */}
           <div className="toolbar-logo">
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+            <div 
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}
+              onDoubleClick={() => window.open('https://www.richbook.co.uk', '_blank')}
+              title="Double-click to visit Richbook website"
+            >
               <img src="logo.png" alt="Richbook Logo" style={{ width: '50px', height: 'auto' }} />
               <div className="toolbar-logo-text">RichBook</div>
             </div>
@@ -364,16 +371,6 @@ const Toolbar = ({
       )}
     </div>
     
-      {/* Timer Settings Modal */}
-      {showTimerSettings && (
-        <TimerSettings
-          isDarkMode={isDarkMode}
-          initialMinutes={timerMinutes}
-          onSave={handleSaveTimerSettings}
-          onCancel={() => setShowTimerSettings(false)}
-        />
-      )}
-      
       {/* Drawing Tools Panel */}
       {showDrawingTools && (
         <DrawingTools

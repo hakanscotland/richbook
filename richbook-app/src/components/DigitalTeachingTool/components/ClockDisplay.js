@@ -1,26 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
-// Enhanced 3D clock component with blinking colon and seconds
+// Simplified clock component with blinking colon
 const ClockDisplay = ({ time }) => {
   const [blink, setBlink] = useState(true);
+  const [currentTime, setCurrentTime] = useState(time);
+  const timerRef = useRef(null);
   
   // Extract hours, minutes and seconds
-  const hours = time.getHours().toString().padStart(2, '0');
-  const minutes = time.getMinutes().toString().padStart(2, '0');
-  const seconds = time.getSeconds().toString().padStart(2, '0');
+  const hours = currentTime.getHours().toString().padStart(2, '0');
+  const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+  const seconds = currentTime.getSeconds().toString().padStart(2, '0');
   
   // Detect if running on iPad/touch device
   const isIPadOS = typeof navigator !== 'undefined' && 
                   ((navigator.platform === 'MacIntel' && 'ontouchend' in document) ||
                    /iPad|iPhone|iPod/.test(navigator.userAgent));
   
-  // Blink the colon every second
+  // Update time and blink the colon every second
   useEffect(() => {
-    const blinkTimer = setInterval(() => {
+    timerRef.current = setInterval(() => {
+      setCurrentTime(new Date());
       setBlink(prev => !prev);
     }, 1000);
     
-    return () => clearInterval(blinkTimer);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
   }, []);
   
   return (
