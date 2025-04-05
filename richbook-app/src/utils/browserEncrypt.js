@@ -1,19 +1,39 @@
+/**
+ * Basit XOR tabanlı şifre çözme (eski sistemle uyumluluk için)
+ * @param {Uint8Array} data - Şifrelenmiş veri dizisi
+ * @param {string} key - Kullanılacak anahtar
+ * @returns {Uint8Array} - Şifresi çözülmüş veri dizisi
+ */
+function xorBasicDecrypt(data, key) {
+  console.log('XOR Basic Decrypt çağrıldı - data uzunluğu:', data.length);
+  const result = new Uint8Array(data.length);
+  const keyLen = key.length;
+  
+  for (let i = 0; i < data.length; i++) {
+    // Her baytı anahtarın bir karakteri ile XOR işlemine tabi tut
+    const keyChar = key.charCodeAt(i % keyLen);
+    result[i] = data[i] ^ keyChar;
+  }
+  
+  return result;
+}
+
 // src/utils/browserEncrypt.js
 // Tarayıcıda ve Electron'da çalışan şifreleme ve şifre çözme fonksiyonları
 const isElectron = window && window.electronAPI !== undefined;
 const path = isElectron ? window.electronAPI.path : null;
 
-/**
- * Şifreleme için kullanılacak anahtar
- * Electron modünde preload scriptinden gelir, tarayıcı modunda .env değişkenlerinden alınır
- */
+// Şifreleme yöntemi izleme
+// Tanımlanıyor ama kullanılmıyor uyarısını önlemek için
+// eslint-disable-next-line no-unused-vars
 let encryptionMethod = 'simple';
 
 /**
- * Bir dizinin şifrelenmesi
+ * Bir dizinin şifrelenmesi (Dışa aktarılmamış fonksiyon, ancak gelecekteki genişletmeler için saklanmıştır)
  * @param {Uint8Array} data - Şifrelenecek veri dizisi
  * @returns {Uint8Array} - Şifrelenmiş veri dizisi
  */
+// eslint-disable-next-line no-unused-vars
 function encryptData(data) {
   if (isElectron && window.electronAPI.encryption) {
     // Electron modünde daha güvenli şifreleme kullan
@@ -31,14 +51,17 @@ function encryptData(data) {
  * @returns {Uint8Array} - Şifresi çözülmüş veri dizisi
  */
 function decryptData(data) {
-  if (isElectron && window.electronAPI.encryption) {
-    // Electron modünde daha güvenli şifre çözme kullan
+  if (isElectron && window.electronAPI && window.electronAPI.encryption) {
+    // Electron modünde daha güvenli şifre çözme kullan - geriye dönük uyumluluk için simple XOR kullanır
     encryptionMethod = 'secure';
+    console.log('Using Electron API for decryption');
     return window.electronAPI.encryption.xorDecryptData(data);
   }
   
   // Tarayıcı modünde veya Electron modünde güvenli API mevcut değilse
-  return simpleCryptoEncrypt(data); // XOR için şifreleme ve şifre çözme aynı işlem
+  console.log('Basit XOR şifre çözme kullanılıyor');
+  const key = "Sm464436!"; // Gerçek uygulamada güvenli değil - hardcoded anahtarlar
+  return xorBasicDecrypt(data, key);
 }
 
 /**
@@ -66,34 +89,57 @@ function simpleCryptoEncrypt(data) {
  * @returns {string} - Güvenli anahtar
  */
 function getSecureKey() {
-  // Local storage'da kaydedilmiş bir anahtar var mı?
-  const storedKey = localStorage.getItem('encryptionKey');
-  
-  if (storedKey) {
-    return storedKey;
-  }
-  
-  // Oturum başına benzersiz bir anahtar oluştur ve sakla
-  let newKey;
-  
   try {
-    // Web Crypto API ile güvenli rastgele değerler oluştur
-    if (window.crypto && window.crypto.getRandomValues) {
-      const array = new Uint8Array(16);
-      window.crypto.getRandomValues(array);
-      newKey = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
-    } else {
-      // Fallback - ideal değil
-      newKey = 'BrowserKey_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+    // 1. Önce ortam değişkeninden kontrol et (Electron Process.env)
+    if (typeof process !== 'undefined' && process.env && process.env.ENCRYPTION_SECRET_KEY) {
+      console.log('Encryption key from environment variable');
+      return process.env.ENCRYPTION_SECRET_KEY;
     }
     
-    // Anahtarı oturum için sakla
-    sessionStorage.setItem('encryptionKey', newKey);
+    // 2. Local storage'da kaydedilmiş bir anahtar var mı?
+    const storedKey = localStorage.getItem('encryptionKey');
     
-    return newKey;
-  } catch (e) {
-    console.error('Secure key generation failed:', e);
-    // Acil durum için varsayılan anahtar (mevcut kodla uyumluluk için)
+    if (storedKey) {
+      console.log('Encryption key from local storage');
+      return storedKey;
+    }
+    
+    // 3. Electron API için kontrol et
+    if (isElectron && window.electronAPI && window.electronAPI.encryption) {
+      console.log('Using encryption from Electron API');
+      // Burada window.electronAPI'den anahtarı alabiliriz
+      return "Sm464436!"; // Geriye dönük uyumluluk için eski anahtarı kullan
+    }
+    
+    // 4. Oturum başına benzersiz bir anahtar oluştur ve sakla
+    let newKey;
+  
+    try {
+      // Web Crypto API ile güvenli rastgele değerler oluştur
+      if (window.crypto && window.crypto.getRandomValues) {
+        const array = new Uint8Array(16);
+        window.crypto.getRandomValues(array);
+        newKey = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+      } else {
+        // Fallback - ideal değil
+        newKey = 'BrowserKey_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+      }
+      
+      // Anahtarı oturum için sakla
+      sessionStorage.setItem('encryptionKey', newKey);
+      localStorage.setItem('encryptionKey', newKey); // kalıcı depolama için
+      
+      console.log('Generated new encryption key');
+      return newKey;
+    } catch (e) {
+      console.error('Secure key generation failed:', e);
+    }
+    
+    // 5. Son çare: Varsayılan güvenli olmayan anahtarı kullan (mevcut kodla uyumluluk için)
+    console.warn('Using default hardcoded key - not secure!');
+    return "Sm464436!";
+  } catch (outerError) {
+    console.error('Critical error in key management:', outerError);
     return "Sm464436!";
   }
 }
