@@ -132,7 +132,7 @@ const Toolbar = ({
           </div>
           
           {/* Row 1: Home and Settings side by side */}
-          <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
+          <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px', marginBottom: '10px' }}>
             <button 
               className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => goToPage(1)}

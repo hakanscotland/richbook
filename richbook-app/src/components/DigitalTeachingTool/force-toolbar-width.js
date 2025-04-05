@@ -32,17 +32,52 @@
       document.documentElement.style.setProperty('--toolbar-width', '160px');
       
       // Toolbar öğelerini bul ve doğrudan stil uygula
-      setTimeout(() => {
+      function applyToolbarStyles() {
         const toolbars = document.querySelectorAll('.toolbar');
         toolbars.forEach(toolbar => {
           toolbar.style.width = '160px';
           console.log('[ForceToolbarWidth] Toolbar genişliği zorlandı:', toolbar);
+          
+          // Home ve Ayarlar butonlarının yan yana görünmesini sağla
+          const buttonPairs = toolbar.querySelectorAll('.toolbar-button-pair');
+          buttonPairs.forEach(pair => {
+            pair.style.display = 'grid';
+            pair.style.gridTemplateColumns = '1fr 1fr';
+            pair.style.width = '90%';
+          });
         });
-      }, 1000); // Sayfanın tamamen yüklenmesi için biraz bekle
+      }
+      
+      // Sayfa yüklendiğinde ve 1 saniye sonra uygula
+      setTimeout(applyToolbarStyles, 100);
+      setTimeout(applyToolbarStyles, 500);
+      setTimeout(applyToolbarStyles, 1000);
+      
+      // DrawingTools paneli için iyileştirmeler
+      function enhanceDrawingTools() {
+        const drawingPanels = document.querySelectorAll('.drawing-tools-panel');
+        drawingPanels.forEach(panel => {
+          panel.style.width = '60px';
+          
+          // Clear butonunu büyüt
+          const clearButton = panel.querySelector('.drawing-tool-button--clear');
+          if (clearButton) {
+            clearButton.style.width = '44px';
+            clearButton.style.height = '44px';
+            clearButton.style.padding = '10px';
+            clearButton.style.marginTop = '8px';
+            clearButton.style.marginBottom = '4px';
+          }
+        });
+      }
+      
+      // Drawing Tools paneli için iyileştirmeleri uygula
+      setTimeout(enhanceDrawingTools, 500);
+      setTimeout(enhanceDrawingTools, 1500);
     }
   }
   
-  // Sayfa yüklendiğinde algılamayı çalıştır
+  // Sayfa yüklenirken algılamayı çalıştır
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', detectTouchDevice);
   } else {
