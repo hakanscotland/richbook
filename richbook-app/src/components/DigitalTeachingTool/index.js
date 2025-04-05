@@ -672,6 +672,11 @@ const DigitalTeachingTool = () => {
     // Araç seçildiğinde settings menüsünü kapat
     setShowSettings(false);
     
+    // Diğer panelleri de kapat
+    setShowThumbnails(false);
+    setShowTimer(false);
+    setShowCurtain(false);
+    
     // El aracı seçildiğinde drawing tools panelini kapat
     if (newTool === 'hand') {
       setShowDrawingTools(false);

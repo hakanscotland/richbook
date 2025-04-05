@@ -144,7 +144,15 @@ const Toolbar = ({
           >
             <button 
               className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => goToPage(1)}
+              onClick={() => {
+                // Diğer panelleri kapat
+                setShowDrawingTools(false);
+                setShowSettings(false);
+                setShowTimer(false);
+                setShowCurtain(false);
+                // Ana sayfaya git
+                goToPage(1);
+              }}
               data-tooltip="Home Page"
             >
               <HomeIcon size={22} />
@@ -152,7 +160,15 @@ const Toolbar = ({
             
             <button 
               className={`toolbar-button tooltip ${showSettings ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={() => {
+                // Önce diğer butonlarla etkileşimde olan panelleri kapat
+                setShowDrawingTools(false);
+                setShowTimer(false);
+                setShowCurtain(false);
+                
+                // Sonra Settings panelini aç/kapat
+                setShowSettings(!showSettings);
+              }}
               data-tooltip="Settings"
             >
               <Settings size={22} />
@@ -175,6 +191,11 @@ const Toolbar = ({
             <button 
               className={`toolbar-button tooltip ${['pen', 'highlighter', 'eraser'].includes(tool) ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
+                // Önce diğer butonlarla etkileşimde olan panelleri kapat
+                setShowSettings(false);
+                setShowTimer(false);
+                setShowCurtain(false);
+                // Drawing Tools panelini aç/kapat
                 setShowDrawingTools(!showDrawingTools);
                 // Close the tool options panel when opening drawing tools
                 if (!showDrawingTools) {
@@ -191,7 +212,10 @@ const Toolbar = ({
           <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
             <button 
               className={`toolbar-button tooltip ${showThumbnails ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => setShowThumbnails(!showThumbnails)}
+              onClick={() => {
+                setShowThumbnails(!showThumbnails);
+                setShowDrawingTools(false); // Drawing paneli kapat
+              }}
               data-tooltip="Thumbnails"
             >
               <Grid size={22} />
@@ -207,6 +231,7 @@ const Toolbar = ({
                 // Seçim modunda iken diğer araçları devre dışı bırak
                 setTool('hand');
                 setShowToolOptions(false);
+                setShowDrawingTools(false); // Drawing paneli kapat
               }}
               data-tooltip="Focus Tool"
             >
@@ -305,6 +330,7 @@ const Toolbar = ({
               onClick={() => {
                 if (!showTimer) {
                   setShowTimerSettings(true);
+                  setShowDrawingTools(false); // Drawing paneli kapat
                 } else {
                   setShowTimer(false);
                 }
@@ -316,7 +342,11 @@ const Toolbar = ({
             
             <button 
               className={`toolbar-button tooltip ${showCurtain ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => setShowCurtain(!showCurtain)}
+              onClick={() => {
+                setShowTimer(false); // Timer'ı kapat
+                setShowDrawingTools(false); // Drawing paneli kapat
+                setShowCurtain(!showCurtain);
+              }}
               data-tooltip="Curtain"
             >
               {showCurtain ? <CurtainClosedIcon size={22} /> : <CurtainOpenIcon size={22} />}
