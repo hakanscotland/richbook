@@ -9,6 +9,11 @@ const ClockDisplay = ({ time }) => {
   const minutes = time.getMinutes().toString().padStart(2, '0');
   const seconds = time.getSeconds().toString().padStart(2, '0');
   
+  // Detect if running on iPad/touch device
+  const isIPadOS = typeof navigator !== 'undefined' && 
+                  ((navigator.platform === 'MacIntel' && 'ontouchend' in document) ||
+                   /iPad|iPhone|iPod/.test(navigator.userAgent));
+  
   // Blink the colon every second
   useEffect(() => {
     const blinkTimer = setInterval(() => {
@@ -24,8 +29,13 @@ const ClockDisplay = ({ time }) => {
         <span className="clock-digit clock-hours">{hours}</span>
         <span className="clock-colon" style={{ opacity: blink ? 1 : 0.4 }}>:</span>
         <span className="clock-digit clock-minutes">{minutes}</span>
-        <span className="clock-colon clock-colon-seconds" style={{ opacity: blink ? 1 : 0.4 }}>:</span>
-        <span className="clock-digit clock-seconds">{seconds}</span>
+        {/* iPad/Touch cihazlarda saniyeyi gösterme opsiyonu */}
+        {!isIPadOS && (
+          <>
+            <span className="clock-colon clock-colon-seconds" style={{ opacity: blink ? 1 : 0.4 }}>:</span>
+            <span className="clock-digit clock-seconds">{seconds}</span>
+          </>
+        )}
       </div>
     </div>
   );

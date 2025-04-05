@@ -1,6 +1,7 @@
 // src/components/DigitalTeachingTool/ToolOptions.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import './slider-fix.css'; // Slider düzeltmelerini içe aktar
 
 const ToolOptions = ({ 
   tool, 
@@ -17,14 +18,99 @@ const ToolOptions = ({
   const [activeTab, setActiveTab] = useState('main');
   const [tempStrokeWidth, setTempStrokeWidth] = useState(strokeWidth);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isIPad, setIsIPad] = useState(false);
+  
+  // Slider referansları
+  const mainSliderRef = useRef(null);
+  const thicknessSliderRef = useRef(null);
+  const opacitySliderRef = useRef(null);
   
   // Dokunmatik cihaz tespiti
   useEffect(() => {
     const detectTouch = () => {
       return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
     };
+    
+    // iPad tespiti
+    const detectIPad = () => {
+      return (/iPad/.test(navigator.userAgent) || 
+             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+    };
+    
     setIsTouchDevice(detectTouch());
+    setIsIPad(detectIPad());
+    
+    // CSS sınıfı ekle
+    if (detectIPad()) {
+      document.documentElement.classList.add('ipad-device');
+    }
   }, []);
+  
+  // iPad slider'larını initialize etme
+  useEffect(() => {
+    // Dokunmatik olaylar için işleyici
+    const handleSliderTouch = (e) => {
+      // Dokunma noktasını hesapla
+      const slider = e.target;
+      const touch = e.touches[0];
+      const sliderRect = slider.getBoundingClientRect();
+      
+      // Kaydırıcı içindeki dokunma pozisyonunu hesapla (0-1 arası)
+      const ratio = Math.max(0, Math.min(1, (touch.clientX - sliderRect.left) / sliderRect.width));
+      
+      // Min ve max değerler arasında yeni değeri hesapla
+      const min = parseInt(slider.min);
+      const max = parseInt(slider.max);
+      const newValue = Math.round(min + ratio * (max - min));
+      
+      // Slider değerini güncelle
+      slider.value = newValue;
+      
+      // Değişiklik olayını tetikle
+      const event = new Event('input', { bubbles: true });
+      slider.dispatchEvent(event);
+      
+      // Sayfa kaydırmayı engelle
+      e.preventDefault();
+    };
+
+    // Slider'lar yüklendikten sonra iPad'de dokunmatik olayları için ek dinleyiciler ekle
+    const setupTouchEvents = () => {
+      if (isIPad || isTouchDevice) {
+        // Mevcut referansları oku ve bu değerleri hemen kullan
+        const mainSlider = mainSliderRef.current;
+        const thicknessSlider = thicknessSliderRef.current;
+        const opacitySlider = opacitySliderRef.current;
+        
+        const sliders = [mainSlider, thicknessSlider, opacitySlider];
+        
+        sliders.forEach(slider => {
+          if (!slider) return;
+          
+          // Varolan olay dinleyicilerini kaldır
+          slider.removeEventListener('touchstart', handleSliderTouch);
+          slider.removeEventListener('touchmove', handleSliderTouch);
+          
+          // Yeni olay dinleyicileri ekle
+          slider.addEventListener('touchstart', handleSliderTouch);
+          slider.addEventListener('touchmove', handleSliderTouch);
+        });
+
+        // Cleanup için bu değişkenleri kullan
+        return () => {
+          sliders.forEach(slider => {
+            if (!slider) return;
+            slider.removeEventListener('touchstart', handleSliderTouch);
+            slider.removeEventListener('touchmove', handleSliderTouch);
+          });
+        };
+      }
+      return undefined; // Eğer touch device değilse cleanup fonksiyonu döndürme
+    };
+    
+    const cleanupFn = setupTouchEvents();
+    return cleanupFn;
+  }, [isIPad, isTouchDevice, activeTab]); // activeTab değiştiğinde yeniden kurulum yap
   
   // StrokeWidth değiştiğinde geçici değeri güncelle
   useEffect(() => {
@@ -67,6 +153,8 @@ const ToolOptions = ({
     top: toolbarPosition.y,
     width: '220px'
   };
+
+  // Not: getAppropriateSliderRef kullanılmıyor, kodu temiz tutmak için çıkarıldı
 
   return (
     <div className={`tool-options-panel tool-options-panel--${isDarkMode ? 'dark' : 'light'} ${isTouchDevice ? 'touch-ui' : ''}`}
@@ -163,6 +251,7 @@ const ToolOptions = ({
               onChange={(e) => setStrokeWidth(parseInt(e.target.value))}
               className={`thickness-slider thickness-slider--${isDarkMode ? 'dark' : 'light'}`}
               style={isTouchDevice ? {height: '36px'} : {}}
+              ref={mainSliderRef}
             />
             
             <div className="thickness-presets">
@@ -190,6 +279,7 @@ const ToolOptions = ({
                 onChange={(e) => setOpacity(parseInt(e.target.value) / 100)}
                 className={`opacity-slider opacity-slider--${isDarkMode ? 'dark' : 'light'}`}
                 style={isTouchDevice ? {height: '36px'} : {}}
+                ref={opacitySliderRef}
               />
             </div>
           )}
@@ -228,6 +318,7 @@ const ToolOptions = ({
               onChange={(e) => setTempStrokeWidth(parseInt(e.target.value))}
               className={`thickness-slider thickness-slider--${isDarkMode ? 'dark' : 'light'}`}
               style={isTouchDevice ? {height: '36px'} : {}}
+              ref={thicknessSliderRef}
             />
             
             <div className="thickness-presets-grid">
