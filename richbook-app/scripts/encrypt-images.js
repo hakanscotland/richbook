@@ -1,49 +1,11 @@
-// encrypt-images.js - Kitap sayfalarını şifreleme betiği
+// encrypt-images.js - Kitap resimlerini şifreleme betiği
 const fs = require('fs');
 const path = require('path');
+const { encryptFile } = require('./utils/crypto-utils');
+require('dotenv').config(); // .env dosyasını yükle
 
-// Şifreleme için kullanılacak anahtar - browserEncrypt.js ile aynı olmalı
-const SECRET_KEY = "Sm464436!";
-
-/**
- * Bir dizinin XOR ile şifrelenmesi
- * @param {Buffer} data - Şifrelenecek veri dizisi
- * @returns {Buffer} - Şifrelenmiş veri dizisi
- */
-function xorEncrypt(data) {
-  const result = Buffer.alloc(data.length);
-  const keyLen = SECRET_KEY.length;
-  
-  for (let i = 0; i < data.length; i++) {
-    // Her baytı SECRET_KEY'in bir karakteri ile XOR işlemine tabi tut
-    const keyChar = SECRET_KEY.charCodeAt(i % keyLen);
-    result[i] = data[i] ^ keyChar;
-  }
-  
-  return result;
-}
-
-/**
- * Bir görüntü dosyasını şifrele
- * @param {string} inputPath - Şifrelenecek dosyanın yolu
- * @param {string} outputPath - Şifrelenmiş dosyanın kaydedileceği yol
- */
-function encryptFile(inputPath, outputPath) {
-  try {
-    // Dosyayı oku
-    const data = fs.readFileSync(inputPath);
-    
-    // Veriyi şifrele
-    const encryptedData = xorEncrypt(data);
-    
-    // Şifrelenmiş veriyi dosyaya kaydet
-    fs.writeFileSync(outputPath, encryptedData);
-    
-    console.log(`Encrypted: ${inputPath} -> ${outputPath}`);
-  } catch (error) {
-    console.error(`Error encrypting ${inputPath}:`, error);
-  }
-}
+// Şifreleme yöntemini belirle (aes veya xor)
+const encryptionMethod = process.env.ENCRYPTION_METHOD || 'xor';
 
 /**
  * Bir klasördeki tüm görüntüleri şifrele
@@ -88,8 +50,10 @@ function encryptDirectory(inputDir, outputDir, extensions = ['.jpg', '.jpeg', '.
         const outputPath = path.join(outputDir, outputFileName);
         
         // Dosyayı şifrele
-        encryptFile(filePath, outputPath);
-        encryptedFiles++;
+        if (encryptFile(filePath, outputPath, encryptionMethod)) {
+          console.log(`Encrypted: ${filePath} -> ${outputPath}`);
+          encryptedFiles++;
+        }
       }
     }
   });
