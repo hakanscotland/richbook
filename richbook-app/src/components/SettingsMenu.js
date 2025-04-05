@@ -8,6 +8,10 @@ const SettingsMenu = ({
   setIsDoublePageView,
   isHalfPageView,
   setIsHalfPageView,
+  showTooltips,
+  setShowTooltips,
+  autoFadeToolbar,
+  setAutoFadeToolbar,
   onClose
 }) => {
   const menuStyle = {
@@ -157,6 +161,24 @@ const SettingsMenu = ({
           <span>Dark Mode</span>
           <div style={switchTrackStyle(isDarkMode)}>
             <div style={switchThumbStyle(isDarkMode)} />
+          </div>
+        </div>
+
+        <div style={{...switchContainerStyle, marginTop: '10px'}} onClick={() => {
+          console.log('Current tooltip state:', showTooltips);
+          setShowTooltips(!showTooltips);
+          console.log('New tooltip state will be:', !showTooltips);
+        }}>
+          <span>Show Tooltip Text</span>
+          <div style={switchTrackStyle(showTooltips)}>
+            <div style={switchThumbStyle(showTooltips)} />
+          </div>
+        </div>
+
+        <div style={{...switchContainerStyle, marginTop: '10px'}} onClick={() => setAutoFadeToolbar(!autoFadeToolbar)}>
+          <span>Auto-Fade Toolbar</span>
+          <div style={switchTrackStyle(autoFadeToolbar)}>
+            <div style={switchThumbStyle(autoFadeToolbar)} />
           </div>
         </div>
       </div>

@@ -1,3 +1,13 @@
+/* Toolbar Fade Effect */
+.toolbar--faded {
+  opacity: 0.4;
+  transition: opacity 0.5s ease;
+}
+
+.toolbar--faded:hover {
+  opacity: 1;
+}
+
 :root {
   --toolbar-width: 114px;
 }
@@ -378,7 +388,9 @@
   position: relative;
 }
 
-.tooltip:hover::after {
+/* Tooltip görünürlüğü için class */
+button.tooltip-enabled:hover::after,
+div.tooltip-enabled:hover::after {
   content: attr(data-tooltip);
   position: absolute;
   bottom: -30px;
@@ -390,10 +402,12 @@
   border-radius: 4px;
   font-size: 0.75rem;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 1100 !important;
+  pointer-events: none;
 }
 
-.tooltip:hover::before {
+button.tooltip-enabled:hover::before,
+div.tooltip-enabled:hover::before {
   content: '';
   position: absolute;
   bottom: -10px;
@@ -402,7 +416,8 @@
   border-width: 5px;
   border-style: solid;
   border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
-  z-index: 1000;
+  z-index: 1100 !important;
+  pointer-events: none;
 }
 
 /* Dokunmatik cihazlar için Toolbar */

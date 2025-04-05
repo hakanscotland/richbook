@@ -29,6 +29,13 @@ const DigitalTeachingTool = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isDoublePageView, setIsDoublePageView] = useState(false);
   const [isHalfPageView, setIsHalfPageView] = useState(false);
+  const [showTooltips, setShowTooltips] = useState(true); // Tooltips için yeni state
+  const [autoFadeToolbar, setAutoFadeToolbar] = useState(true); // Toolbar otomatik solma özelliği
+
+  // Tooltip kontrolü için useEffect
+  useEffect(() => {
+    console.log('Tooltip state değişti: ', showTooltips);
+  }, [showTooltips]);
   const [zoom, setZoom] = useState(1);
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -848,6 +855,8 @@ const DigitalTeachingTool = () => {
         setStrokeWidth={setStrokeWidth}
         opacity={opacity}
         setOpacity={setOpacity}
+        showTooltips={showTooltips}
+        autoFadeToolbar={autoFadeToolbar}
       />
       
       {/* Araç seçenekleri panel */}
@@ -875,6 +884,10 @@ const DigitalTeachingTool = () => {
           setIsDoublePageView={setIsDoublePageView}
           isHalfPageView={isHalfPageView}
           setIsHalfPageView={setIsHalfPageView}
+          showTooltips={showTooltips}
+          setShowTooltips={setShowTooltips}
+          autoFadeToolbar={autoFadeToolbar}
+          setAutoFadeToolbar={setAutoFadeToolbar}
           onClose={() => setShowSettings(false)}
         />
       )}

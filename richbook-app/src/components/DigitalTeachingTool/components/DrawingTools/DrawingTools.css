@@ -38,15 +38,15 @@
 }
 
 .drawing-tools-content {
-  padding: 6px 0;
+  padding: 4px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .drawing-tools-section {
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -69,15 +69,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  margin-bottom: 3px;
+  gap: 0;
+  margin-bottom: 2px;
   width: 100%;
 }
 
 /* Araç butonları */
 .drawing-tools-buttons .drawing-tool-button {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   padding: 8px;
   justify-content: center;
   align-items: center;
@@ -88,14 +88,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 3px;
+  gap: 2px;
+  margin-bottom: 2px;
   width: 100%;
 }
 
 .color-option {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.2);
   cursor: pointer;
@@ -117,8 +117,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  margin-bottom: 3px;
+  gap: 1px;
+  margin-bottom: 2px;
   width: 100%;
 }
 
@@ -128,8 +128,8 @@
 }
 
 .stroke-width-option {
-  width: 38px;
-  height: 28px;
+  width: 36px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,14 +153,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  margin-bottom: 3px;
+  gap: 1px;
+  margin-bottom: 2px;
   width: 100%;
 }
 
 .opacity-option {
-  width: 38px;
-  height: 28px;
+  width: 36px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -218,9 +218,9 @@
 }
 
 .drawing-tool-button--clear {
-  width: 38px;
-  height: 32px;
-  margin-top: 2px;
+  width: 36px;
+  height: 30px;
+  margin-top: 1px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   padding: 6px;
   justify-content: center;
@@ -273,29 +273,29 @@
     margin-bottom: 4px;
   }
   
-  /* Diğer dokunmatik iyileştirmeler */
+  /* Diğer dokunmatik iyileştirmeler - iPad için kompakt hale getirildi */
   .drawing-tools-buttons .drawing-tool-button {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
   
   .color-option {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
   }
   
   .stroke-width-option {
-    width: 44px;
-    height: 40px;
+    width: 40px;
+    height: 32px;
   }
   
   .opacity-option {
-    width: 44px;
-    height: 40px;
+    width: 40px;
+    height: 32px;
   }
   
-  /* iPad için panel genişliğini artır */
+  /* iPad için panel genişliğini ayarla */
   .drawing-tools-panel {
-    width: 60px;
+    width: 46px;
   }
 }

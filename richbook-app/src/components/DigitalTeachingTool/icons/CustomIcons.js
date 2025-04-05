@@ -1,5 +1,6 @@
 import React from 'react';
 import DrawingToolIcon from './DrawingToolIcon';
+import CustomEraserIcon from './CustomEraserIcon';
 
 // Home icon for navigation to first page
 export const HomeIcon = ({ size = 24, color = 'currentColor', ...props }) => {
@@ -43,8 +44,8 @@ export const CropIcon = ({ size = 24, color = 'currentColor', ...props }) => {
   );
 };
 
-// Export the DrawingToolIcon
-export { DrawingToolIcon };
+// Export the DrawingToolIcon and CustomEraserIcon
+export { DrawingToolIcon, CustomEraserIcon };
 
 // Curtain icon - closed (when curtain is active)
 export const CurtainClosedIcon = ({ size = 24, color = 'currentColor', ...props }) => {

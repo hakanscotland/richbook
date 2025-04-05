@@ -131,8 +131,17 @@ const ToolOptions = ({
     '#FFFFFF'  // White
   ];
 
-  // Predefined stroke widths
-  const strokeWidths = [1, 2, 3, 5, 8, 12, 18, 24];
+  // Predefined stroke widths - adjust for iPad and highlighter
+  const getStrokeWidths = () => {
+    if (isIPad && tool === 'highlighter') {
+      // Reduced options for highlighter on iPad to save vertical space
+      return [2, 6, 12, 18];
+    } else {
+      return [1, 2, 3, 5, 8, 12, 18, 24];
+    }
+  };
+  
+  const strokeWidths = getStrokeWidths();
   
   // Apply stroke width and go back to main tab
   const applyStrokeWidth = () => {

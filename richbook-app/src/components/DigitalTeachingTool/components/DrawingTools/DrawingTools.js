@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-import { Pencil, Highlighter, Eraser, Trash2 } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Pencil, Highlighter, Trash2 } from 'lucide-react';
+import { CustomEraserIcon } from '../../icons/CustomIcons';
 import './DrawingTools.css';
 
 const DrawingTools = ({
@@ -24,12 +25,22 @@ const DrawingTools = ({
     const toolbarWidth = parseInt(getComputedStyle(document.documentElement)
       .getPropertyValue('--toolbar-width')) || 150;
     
-    // Add additional offset to prevent overlap
-    const offsetX = 20; // Additional 20px offset to the right
+    // iPad için daha az boşluk bırakalım
+    const offsetX = isIPad ? 10 : 20; // iPad için daha az boşluk
+    
+    // Ekranın sağ kenarından taşma kontrolu
+    let leftPosition = toolbarPosition.x + toolbarWidth + offsetX;
+    
+    // Eğer iPad ise ve highlight seçiliyse, üst konumu biraz yukari kaydır
+    // Bu, kaydırma çubuğunun aşağıya taşmasını engelleyecek
+    let topPosition = toolbarPosition.y;
+    if (isIPad && tool === 'highlighter') {
+      topPosition = Math.max(0, topPosition - 30); // 30px yukarı kaydır
+    }
     
     return {
-      left: `${toolbarPosition.x + toolbarWidth + offsetX}px`, // Position to the right of toolbar with offset
-      top: `${toolbarPosition.y}px`, // Align with the top of toolbar
+      left: `${leftPosition}px`,
+      top: `${topPosition}px`,
     };
   };
 
@@ -39,31 +50,84 @@ const DrawingTools = ({
     // Keep the panel open for easier tool switching
   };
 
-  // Renk seçenekleri - turuncu rengi kaldırıldı
-  const colorOptions = [
-    '#000000', // Siyah
-    '#FFFFFF', // Beyaz
-    '#0096FF', // Mavi
-    '#FF0000', // Kırmızı
-    '#00AA00', // Yeşil
-    '#9900EF'  // Mor
-  ];
+  // iPad detection
+  const [isIPad, setIsIPad] = useState(false);
+  
+  useEffect(() => {
+    // iPad detection function
+    const detectIPad = () => {
+      return (/iPad/.test(navigator.userAgent) || 
+             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+    };
+    
+    setIsIPad(detectIPad());
+  }, []);
 
-  // Kalem kalınlığı seçenekleri
-  const strokeWidthOptions = [
-    { value: 1, label: 'XS' },
-    { value: 2, label: 'S' },
-    { value: 4, label: 'M' },
-    { value: 6, label: 'L' },
-    { value: 10, label: 'XL' }
-  ];
+  // Renk seçenekleri - iPad için optimize edildi
+  const getColorOptions = () => {
+    if (isIPad) {
+      // iPad için daha az renk seçeneği sunarak dikey alanı azaltalım
+      return [
+        '#000000', // Siyah
+        '#0096FF', // Mavi
+        '#FF0000', // Kırmızı
+        '#00AA00', // Yeşil
+      ];
+    } else {
+      return [
+        '#000000', // Siyah
+        '#FFFFFF', // Beyaz
+        '#0096FF', // Mavi
+        '#FF0000', // Kırmızı
+        '#00AA00', // Yeşil
+        '#9900EF'  // Mor
+      ];
+    }
+  };
+  
+  const colorOptions = getColorOptions();
+
+  // Adjust stroke width options based on device and tool
+  const getStrokeWidthOptions = () => {
+    if (isIPad && tool === 'highlighter') {
+      // Reduced options for highlighter on iPad to save vertical space
+      return [
+        { value: 2, label: 'S' },
+        { value: 6, label: 'M' },
+        { value: 12, label: 'L' }
+      ];
+    } else {
+      // Default options
+      return [
+        { value: 1, label: 'XS' },
+        { value: 2, label: 'S' },
+        { value: 4, label: 'M' },
+        { value: 6, label: 'L' },
+        { value: 10, label: 'XL' }
+      ];
+    }
+  };
+  
+  const strokeWidthOptions = getStrokeWidthOptions();
 
   // Opacity seçenekleri (Fosforlu kalem için)
-  const opacityOptions = [
-    { value: 0.3, label: 'Low' },
-    { value: 0.5, label: 'Medium' },
-    { value: 0.7, label: 'High' }
-  ];
+  const getOpacityOptions = () => {
+    if (isIPad) {
+      // iPad için daha az saydamlık seçeneği
+      return [
+        { value: 0.3, label: 'Low' },
+        { value: 0.7, label: 'High' }
+      ];
+    } else {
+      return [
+        { value: 0.3, label: 'Low' },
+        { value: 0.5, label: 'Medium' },
+        { value: 0.7, label: 'High' }
+      ];
+    }
+  };
+  
+  const opacityOptions = getOpacityOptions();
   
   return (
     <div className="drawing-tools-container" style={getPanelPosition()}>
@@ -96,7 +160,7 @@ const DrawingTools = ({
               onClick={() => handleToolSelect('eraser')}
                 title="Eraser Tool"
               >
-              <Eraser size={20} />
+              <CustomEraserIcon size={20} />
               </button>
             </div>
           </div>
@@ -104,7 +168,7 @@ const DrawingTools = ({
           {/* Renk Seçimi - Sadece kalem ve fosforlu kalem için göster */}
           {(tool === 'pen' || tool === 'highlighter') && (
             <div className="drawing-tools-section">
-              <div className="drawing-tools-colors">
+              <div className="drawing-tools-colors" style={{ gap: isIPad ? '1px' : '2px' }}>
                 {colorOptions.map((clr) => (
                   <button 
                     key={clr}
@@ -128,7 +192,7 @@ const DrawingTools = ({
           
           {/* Kalınlık Seçimi - Tüm araçlar için */}
           <div className="drawing-tools-section">
-            <div className="drawing-tools-stroke-width">
+            <div className="drawing-tools-stroke-width" style={{ gap: isIPad ? '0' : '1px' }}>
               {strokeWidthOptions.map((option) => (
                 <button 
                   key={option.value}
@@ -153,7 +217,7 @@ const DrawingTools = ({
           {/* Saydamlık Seçimi - Sadece fosforlu kalem için */}
           {tool === 'highlighter' && (
             <div className="drawing-tools-section">
-              <div className="drawing-tools-opacity">
+              <div className="drawing-tools-opacity" style={{ gap: isIPad ? '0' : '1px' }}>
                 {opacityOptions.map((option) => (
                   <button 
                     key={option.value}

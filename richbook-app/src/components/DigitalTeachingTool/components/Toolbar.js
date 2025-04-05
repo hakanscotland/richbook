@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Hand, ArrowLeft, ArrowRight, ZoomIn, ZoomOut,
   Grid, Settings, Move, X, ChevronDown, Clock, Trash2, RotateCcw
@@ -49,11 +49,68 @@ const Toolbar = ({
   setStrokeWidth,
   opacity,
   setOpacity,
+  showTooltips = true, // Tooltip gösterme ayarı
+  autoFadeToolbar = true, // Toolbar otomatik solma özelliği
 }) => {
   // Sayfa numarası düzenleme durumu
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [pageInputValue, setPageInputValue] = useState("");
   
+  // Konsola showTooltips değierini yazdıralım
+  useEffect(() => {
+    console.log('Toolbar içinde tooltip state: ', showTooltips);
+  }, [showTooltips]);
+
+  // Auto-fade functionality
+  const [isToolbarFaded, setIsToolbarFaded] = useState(false);
+  const inactivityTimerRef = useRef(null);
+
+  // Mouse hareketi veya tıklama gibi etkileşimleri izle
+  const startInactivityTimer = useCallback(() => {
+    // Önce mevcut timer'i temizle
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Toolbar'i görünür yap
+    setIsToolbarFaded(false);
+
+    // AutoFade etkinleştirilmişse 10 saniye sonra soluklaştır
+    if (autoFadeToolbar) {
+      inactivityTimerRef.current = setTimeout(() => {
+        setIsToolbarFaded(true);
+      }, 10000); // 10 saniye
+    }
+  }, [autoFadeToolbar]);
+
+  // Component yüklenirken ve autoFadeToolbar ayarı değiştiğinde inaktivite timer'ı başlat
+  useEffect(() => {
+    // AutoFade devre dışıysa ve toolbar faded durumdaysa, görünür duruma getir
+    if (!autoFadeToolbar && isToolbarFaded) {
+      setIsToolbarFaded(false);
+    } else {
+      startInactivityTimer();
+    }
+
+    // Event dinleyicileri ekle
+    const handleEvent = () => startInactivityTimer();
+    document.addEventListener('mousemove', handleEvent);
+    document.addEventListener('click', handleEvent);
+    document.addEventListener('touchstart', handleEvent);
+    document.addEventListener('keydown', handleEvent);
+
+    // Cleanup
+    return () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      document.removeEventListener('mousemove', handleEvent);
+      document.removeEventListener('click', handleEvent);
+      document.removeEventListener('touchstart', handleEvent);
+      document.removeEventListener('keydown', handleEvent);
+    };
+  }, [autoFadeToolbar, isToolbarFaded, startInactivityTimer]);
+
   // Zoom'u sıfırlama fonksiyonu
   const resetZoom = () => {
     setZoom(1);
@@ -73,7 +130,7 @@ const Toolbar = ({
 
   return (
     <>
-      <div className={`toolbar toolbar--${isDarkMode ? 'dark' : 'light'} ${isToolbarCollapsed ? 'toolbar--collapsed' : ''} ${isTouchDevice ? 'touch-toolbar' : ''}`} 
+      <div className={`toolbar toolbar--${isDarkMode ? 'dark' : 'light'} ${isToolbarCollapsed ? 'toolbar--collapsed' : ''} ${isTouchDevice ? 'touch-toolbar' : ''} ${isToolbarFaded ? 'toolbar--faded' : ''}`} 
         style={{
           top: `${toolbarPosition.y}px`, 
           left: `${toolbarPosition.x}px`,
@@ -126,7 +183,7 @@ const Toolbar = ({
             }}
           >
             <button 
-              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 // Diğer panelleri kapat
                 setShowDrawingTools(false);
@@ -142,7 +199,7 @@ const Toolbar = ({
             </button>
             
             <button 
-              className={`toolbar-button tooltip ${showSettings ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} ${showSettings ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 // Önce diğer butonlarla etkileşimde olan panelleri kapat
                 setShowDrawingTools(false);
@@ -161,7 +218,7 @@ const Toolbar = ({
           {/* Drawing tools and Hand tool side by side - Hand on left, drawing on right */}
           <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px', marginBottom: '10px' }}>
             <button 
-              className={`toolbar-button tooltip ${tool === 'hand' ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} ${tool === 'hand' ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 setTool('hand');
                 setShowToolOptions(false);
@@ -172,16 +229,26 @@ const Toolbar = ({
             </button>
             
             <button 
-              className={`toolbar-button tooltip ${['pen', 'highlighter', 'eraser'].includes(tool) ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} ${['pen', 'highlighter', 'eraser'].includes(tool) ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 // Önce diğer butonlarla etkileşimde olan panelleri kapat
                 setShowSettings(false);
                 setShowTimer(false);
                 setShowCurtain(false);
+                
                 // Drawing Tools panelini aç/kapat
-                setShowDrawingTools(!showDrawingTools);
+                const willOpen = !showDrawingTools;
+                setShowDrawingTools(willOpen);
+                
+                // Eğer panel açılıyorsa, kalem seçili olsun
+                if (willOpen) {
+                  selectTool('pen');
+                  setColor('#000000'); // Siyah renk
+                  setStrokeWidth(4);    // Orta kalınlık (M boyutu)
+                }
+                
                 // Close the tool options panel when opening drawing tools
-                if (!showDrawingTools) {
+                if (willOpen) {
                   setShowToolOptions(false);
                 }
               }}
@@ -194,7 +261,7 @@ const Toolbar = ({
           {/* Row 4: Thumbnails and Focus Tool side by side */}
           <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
             <button 
-              className={`toolbar-button tooltip ${showThumbnails ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} ${showThumbnails ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 setShowThumbnails(!showThumbnails);
                 setShowDrawingTools(false); // Drawing paneli kapat
@@ -205,7 +272,7 @@ const Toolbar = ({
             </button>
             
             <button 
-              className={`toolbar-button tooltip ${isSelectingFocusArea ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} ${isSelectingFocusArea ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 setIsSelectingFocusArea(!isSelectingFocusArea);
                 if (isSelectingFocusArea) {
@@ -225,7 +292,7 @@ const Toolbar = ({
           {/* Row 4.5: Reset ve Clear butonları yan yana */}
           <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px', marginBottom: '10px' }}>
             <button 
-              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={resetZoom}
               data-tooltip="Reset Zoom"
             >
@@ -233,7 +300,7 @@ const Toolbar = ({
             </button>
             
             <button 
-              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={clearDrawings}
               data-tooltip="Clear All"
             >
@@ -285,7 +352,7 @@ const Toolbar = ({
             
             <div className="page-nav-buttons">
               <button 
-              className={`page-nav-button tooltip page-nav-button--${isDarkMode ? 'dark' : 'light'} ${isTouchDevice ? 'touch-button' : ''}`}
+              className={`page-nav-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} page-nav-button--${isDarkMode ? 'dark' : 'light'} ${isTouchDevice ? 'touch-button' : ''}`}
               onClick={prevPage}
               disabled={currentPage <= 1}
               data-tooltip="Previous Page"
@@ -295,7 +362,7 @@ const Toolbar = ({
               </button>
               
               <button 
-                className={`page-nav-button tooltip page-nav-button--${isDarkMode ? 'dark' : 'light'} ${isTouchDevice ? 'touch-button' : ''}`}
+                className={`page-nav-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} page-nav-button--${isDarkMode ? 'dark' : 'light'} ${isTouchDevice ? 'touch-button' : ''}`}
                 onClick={nextPage}
                 disabled={currentPage >= pages.length}
                 data-tooltip="Next Page"
@@ -309,7 +376,7 @@ const Toolbar = ({
           {/* Row 5: Zoom controls side by side */}
           <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
             <button 
-              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => setZoom(prev => Math.min(prev + 0.1, 3))}
               data-tooltip="Zoom In"
             >
@@ -317,7 +384,7 @@ const Toolbar = ({
             </button>
             
             <button 
-              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => setZoom(prev => Math.max(prev - 0.1, 0.5))}
               data-tooltip="Zoom Out"
             >
@@ -328,7 +395,7 @@ const Toolbar = ({
           {/* Timer ve Curtain kontrolleri yan yana */}
           <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
             <button 
-              className={`toolbar-button tooltip ${showTimer ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} ${showTimer ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 setShowTimer(!showTimer);
                 setShowDrawingTools(false); // Drawing paneli kapat
@@ -339,7 +406,7 @@ const Toolbar = ({
             </button>
             
             <button 
-              className={`toolbar-button tooltip ${showCurtain ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              className={`toolbar-button tooltip ${showTooltips ? 'tooltip-enabled' : ''} ${showCurtain ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
               onClick={() => {
                 setShowTimer(false); // Timer'ı kapat
                 setShowDrawingTools(false); // Drawing paneli kapat
