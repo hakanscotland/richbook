@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<list>
+	<directive>Examine the solution.</directive>
+	<image></image>
+	<sound></sound>
+	<soundControllerVisible>false</soundControllerVisible>
+	
+
+	<imageScale>1.3</imageScale>
+	<item>Solution.png</item>
+</list>
+	

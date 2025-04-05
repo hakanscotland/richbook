@@ -1131,6 +1131,30 @@
     -webkit-tap-highlight-color: transparent; /* Dokunmatik vurgulamayı kaldır */
   }
   
+  /* Dokunmatik sürükleme için toolbar geliştirmeleri */
+  .touch-device .toolbar-header {
+    cursor: grab;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .touch-device .toolbar-header:active {
+    cursor: grabbing;
+  }
+  
+  /* Dokunmatik sürükleme sırasında oluşacak arka plan elemanı */
+  .touch-dragging-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 940;
+    touch-action: none;
+    pointer-events: all;
+  }
+  
   /* iPad'de Safari için kaydırma davranışını engelle */
     .digital-teaching-container {
       width: 100vw;

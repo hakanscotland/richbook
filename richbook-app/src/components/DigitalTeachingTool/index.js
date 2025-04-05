@@ -42,6 +42,7 @@ const DigitalTeachingTool = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showToolOptions, setShowToolOptions] = useState(false);
+  const [showDrawingTools, setShowDrawingTools] = useState(false);
   const [showCurtain, setShowCurtain] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(false);
@@ -54,6 +55,13 @@ const DigitalTeachingTool = () => {
   const [opacity, setOpacity] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageDrawings, setPageDrawings] = useState({});
+  
+  // DrawingTools paneli açıldığında ToolOptions panelini kapat
+  useEffect(() => {
+    if (showDrawingTools) {
+      setShowToolOptions(false);
+    }
+  }, [showDrawingTools]);
   
   // Focus aracı durumu
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -275,7 +283,7 @@ const DigitalTeachingTool = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // ESC key to exit focus mode or selection mode
+      // ESC key to exit focus mode or selection mode or close panels
       if (e.key === 'Escape') {
         if (isFocusMode) {
           setIsFocusMode(false);
@@ -284,6 +292,9 @@ const DigitalTeachingTool = () => {
           setIsSelectingFocusArea(false);
           setFocusArea(null);
           setDragStart(null);
+        } else if (showDrawingTools) {
+          // Close drawing tools panel
+          setShowDrawingTools(false);
         }
       }
       
@@ -326,7 +337,7 @@ const DigitalTeachingTool = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [tool, previousTool, isFocusMode, isSelectingFocusArea]);
+  }, [tool, previousTool, isFocusMode, isSelectingFocusArea, showDrawingTools]);
 
   // HTML2Canvas ile ekran görüntüsü alma
   const captureFocusArea = (area) => {
@@ -543,36 +554,124 @@ const DigitalTeachingTool = () => {
   
   // Toolbar sürükleme işleyicileri
   const startDraggingToolbar = (e) => {
-    if (tool !== 'hand' && tool !== 'focus') return;
+    // Kısıtlamayı kaldırdık, hangi araç seçili olursa olsun toolbar'i sürüklenebilir
     
-    e.preventDefault();
+    // preventDefault'u koşullu olarak çağır (bazı dokunmatik olaylarda passive: true olabilir)
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+    
     setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - toolbarPosition.x,
-      y: e.clientY - toolbarPosition.y
-    });
+    
+    // Mouse veya dokunmatik olayları için farklı işlem
+    if (e.type === 'touchstart') {
+      // Dokunmatik olay
+      const touch = e.touches[0];
+      setDragOffset({
+        x: touch.clientX - toolbarPosition.x,
+        y: touch.clientY - toolbarPosition.y
+      });
+      
+      // Dokunmatik cihazlarda scroll işlemini engelle
+      if (isTouchDevice) {
+        // Tüm içerik için scrolling devre dışı bırak
+        document.body.style.overflow = 'hidden';
+        // Dokunmatik hareketin sürükleme yerine scroll yapmasını engelle
+        e.target.style.touchAction = 'none';
+        
+        // Dokunmatik sürüklemeyi yakalayacak tam ekran şeffaf katman oluştur
+        // Bu, iPad ve diğer dokunmatik cihazlarda sürükleme sırasında
+        // diğer dokunmatik olayların tetiklenmesini engeller
+        const touchDraggingBg = document.createElement('div');
+        touchDraggingBg.className = 'touch-dragging-bg';
+        document.body.appendChild(touchDraggingBg);
+        
+        // Global değişkene referansı sakla (ileride kaldırmak için)
+        window.touchDraggingBg = touchDraggingBg;
+      }
+    } else {
+      // Mouse olayı
+      setDragOffset({
+        x: e.clientX - toolbarPosition.x,
+        y: e.clientY - toolbarPosition.y
+      });
+    }
   };
 
   const handleMouseMoveToolbar = (e) => {
     if (!isDragging) return;
     
-    setToolbarPosition({
-      x: e.clientX - dragOffset.x,
-      y: e.clientY - dragOffset.y
-    });
+    // Mouse veya dokunmatik olayları için farklı işlem
+    if (e.type === 'touchmove') {
+      // Dokunmatik olay - preventDefault dokunmatik cihazda scroll'u engeller
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      
+      const touch = e.touches[0];
+      
+      // Ekran sınırlarını kontrol et
+      const maxX = window.innerWidth - 120; // Toolbar genişliği
+      const maxY = window.innerHeight - 60; // Toolbar yüksekliği
+      
+      // Ekran dışına çıkmasını önle
+      const newX = Math.min(Math.max(0, touch.clientX - dragOffset.x), maxX);
+      const newY = Math.min(Math.max(0, touch.clientY - dragOffset.y), maxY);
+      
+      setToolbarPosition({
+        x: newX,
+        y: newY
+      });
+    } else {
+      // Mouse olayı
+      // Ekran sınırlarını kontrol et
+      const maxX = window.innerWidth - 120; // Toolbar genişliği
+      const maxY = window.innerHeight - 60; // Toolbar yüksekliği
+      
+      // Ekran dışına çıkmasını önle
+      const newX = Math.min(Math.max(0, e.clientX - dragOffset.x), maxX);
+      const newY = Math.min(Math.max(0, e.clientY - dragOffset.y), maxY);
+      
+      setToolbarPosition({
+        x: newX,
+        y: newY
+      });
+    }
   };
 
   const stopDraggingToolbar = () => {
     setIsDragging(false);
+    
+    // Dokunmatik cihazlarda scroll işlemini geri etkinleştir
+    if (isTouchDevice) {
+      document.body.style.overflow = '';
+      
+      // Oluşturulan şeffaf arkaplan katmanını kaldır
+      if (window.touchDraggingBg && window.touchDraggingBg.parentNode) {
+        window.touchDraggingBg.parentNode.removeChild(window.touchDraggingBg);
+        window.touchDraggingBg = null;
+      }
+    }
   };
   
   // Araç seçim işleyicisi
   const selectTool = (newTool) => {
     setTool(newTool);
-    setShowToolOptions(true);
+    
+    // Drawing tools paneli açıksa, eski tool options'u gösterme
+    if (showDrawingTools) {
+      setShowToolOptions(false);
+    } else {
+      setShowToolOptions(true);
+    }
     
     // Araç seçildiğinde settings menüsünü kapat
     setShowSettings(false);
+    
+    // El aracı seçildiğinde drawing tools panelini kapat
+    if (newTool === 'hand') {
+      setShowDrawingTools(false);
+    }
     
     // Araç türüne göre uygun değerleri ayarla
     if (newTool === 'highlighter') {
@@ -607,9 +706,13 @@ const DigitalTeachingTool = () => {
         stopDraggingToolbar();
         customHandleMouseUp();
       }}
-      onTouchEnd={() => {
+      onTouchMove={(e) => {
+        handleMouseMoveToolbar(e);
+        handleTouchMove(e);
+      }}
+      onTouchEnd={(e) => {
         stopDraggingToolbar();
-        customHandleTouchEnd();
+        customHandleTouchEnd(e);
       }}
     >
       {/* Sayfa görüntüleyici */}
@@ -728,6 +831,14 @@ const DigitalTeachingTool = () => {
         showTimer={showTimer}
         setShowTimer={setShowTimer}
         setTimerMinutes={setTimerMinutes}
+        showDrawingTools={showDrawingTools}
+        setShowDrawingTools={setShowDrawingTools}
+        color={color}
+        setColor={setColor}
+        strokeWidth={strokeWidth}
+        setStrokeWidth={setStrokeWidth}
+        opacity={opacity}
+        setOpacity={setOpacity}
       />
       
       {/* Araç seçenekleri panel */}

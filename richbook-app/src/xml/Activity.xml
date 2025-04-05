@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Root>
+	<iconSize>32</iconSize>
+	<xPos>5</xPos>
+	
+
+
+	<page num="1">	
+  		<activity num="1">
+			<type>ShowAnswer</type> 
+			<hint>Show Answer</hint>
+    		<xPos>38</xPos>
+			<yPos>73</yPos>
+		</activity>
+	</page>	
+
+	<page num="2">	
+		<activity num="1">
+			<type>Poster</type>
+			<xPos>355</xPos>
+			<yPos>73</yPos>
+		</activity>	
+
+ 	</page>	
+
+	
+	
+</Root>

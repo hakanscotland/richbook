@@ -461,6 +461,21 @@ html.ipad-device body {
   --toolbar-width: 160px !important;
 }
 
+/* Dokunmatik cihazlardaki sürükleme işlevi için toolbar başlığı iyileştirmeleri */
+.touch-device .toolbar-header {
+  height: 36px;
+  min-height: 36px;
+  padding: 6px 8px;
+  width: 90%;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-device .toolbar-header:active {
+  cursor: grabbing;
+}
+
 .ipad-device .toolbar-button {
   min-width: 60px !important; /* 70px yerine 60px */
   width: 60px !important; /* 70px yerine 60px */

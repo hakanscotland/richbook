@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Hand, Pencil, Highlighter, Eraser, Trash2,
-  ArrowLeft, ArrowRight, ZoomIn, ZoomOut,
+  Hand, ArrowLeft, ArrowRight, ZoomIn, ZoomOut,
   Grid, Settings, Move, X, ChevronDown, Clock
 } from 'lucide-react';
-import { CropIcon, CurtainClosedIcon, CurtainOpenIcon } from '../icons/CustomIcons';
+import { CropIcon, CurtainClosedIcon, CurtainOpenIcon, DrawingToolIcon, HomeIcon } from '../icons/CustomIcons';
+import DrawingTools from './DrawingTools';
 import TimerSettings from './TimerSettings';
 import ClockDisplay from './ClockDisplay';
 import './Toolbar.css';
@@ -42,6 +42,14 @@ const Toolbar = ({
   showTimer = false,
   setShowTimer = () => {},
   setTimerMinutes = () => {},
+  showDrawingTools,
+  setShowDrawingTools,
+  color,
+  setColor,
+  strokeWidth,
+  setStrokeWidth,
+  opacity,
+  setOpacity,
 }) => {
   // Sayaç için state'ler
   const [timerMinutes, setTimerMinutesLocal] = useState(5);
@@ -89,6 +97,7 @@ const Toolbar = ({
       <div 
         className="toolbar-header"
         onMouseDown={startDraggingToolbar}
+        onTouchStart={startDraggingToolbar}
       >
         <div style={{ 
           padding: '0.25rem',
@@ -122,19 +131,14 @@ const Toolbar = ({
             <ClockDisplay time={time} />
           </div>
           
-          {/* Paired tool buttons in rows */}
-          
-          {/* Row 1: Hand and Settings side by side */}
+          {/* Row 1: Home and Settings side by side */}
           <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
             <button 
-              className={`toolbar-button tooltip ${tool === 'hand' ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => {
-                setTool('hand');
-                setShowToolOptions(false);
-              }}
-              data-tooltip="Selection Tool"
+              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              onClick={() => goToPage(1)}
+              data-tooltip="Home Page"
             >
-              <Hand size={22} />
+              <HomeIcon size={22} />
             </button>
             
             <button 
@@ -146,41 +150,31 @@ const Toolbar = ({
             </button>
           </div>
           
-          {/* Row 2: Pen Tool and Highlighter side by side */}
-          <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
+          {/* Drawing tools and Hand tool side by side - Hand on left, drawing on right */}
+          <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px', marginBottom: '10px' }}>
             <button 
-              className={`toolbar-button tooltip ${tool === 'pen' ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => selectTool('pen')}
-              data-tooltip="Pen Tool"
+              className={`toolbar-button tooltip ${tool === 'hand' ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              onClick={() => {
+                setTool('hand');
+                setShowToolOptions(false);
+              }}
+              data-tooltip="Hand Tool"
             >
-              <Pencil size={22} />
+              <Hand size={22} />
             </button>
             
             <button 
-              className={`toolbar-button tooltip ${tool === 'highlighter' ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => selectTool('highlighter')}
-              data-tooltip="Highlighter Tool"
+              className={`toolbar-button tooltip ${['pen', 'highlighter', 'eraser'].includes(tool) ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
+              onClick={() => {
+                setShowDrawingTools(!showDrawingTools);
+                // Close the tool options panel when opening drawing tools
+                if (!showDrawingTools) {
+                  setShowToolOptions(false);
+                }
+              }}
+              data-tooltip="Drawing Tools"
             >
-              <Highlighter size={22} />
-            </button>
-          </div>
-          
-          {/* Row 3: Eraser and Clear side by side */}
-          <div className="toolbar-button-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridGap: '10px' }}>
-            <button 
-              className={`toolbar-button tooltip ${tool === 'eraser' ? 'toolbar-button--active' : ''} toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={() => selectTool('eraser')}
-              data-tooltip="Eraser Tool"
-            >
-              <Eraser size={22} />
-            </button>
-            
-            <button 
-              className={`toolbar-button tooltip toolbar-button--${isDarkMode ? 'dark' : 'light'}`}
-              onClick={clearDrawings}
-              data-tooltip="Clear Drawings"
-            >
-              <Trash2 size={22} />
+              <DrawingToolIcon size={22} />
             </button>
           </div>
           
@@ -338,6 +332,23 @@ const Toolbar = ({
           initialMinutes={timerMinutes}
           onSave={handleSaveTimerSettings}
           onCancel={() => setShowTimerSettings(false)}
+        />
+      )}
+      
+      {/* Drawing Tools Panel */}
+      {showDrawingTools && (
+        <DrawingTools
+          isDarkMode={isDarkMode}
+          tool={tool}
+          selectTool={selectTool}
+          onClearDrawings={clearDrawings}
+          toolbarPosition={toolbarPosition}
+          color={color}
+          setColor={setColor}
+          strokeWidth={strokeWidth}
+          setStrokeWidth={setStrokeWidth}
+          opacity={opacity}
+          setOpacity={setOpacity}
         />
       )}
     </>

@@ -2,3 +2,4 @@
 export { default as Toolbar } from './Toolbar';
 export { default as Timer } from './Timer';
 export { default as TimerSettings } from './TimerSettings';
+export { default as DrawingTools } from './DrawingTools';
